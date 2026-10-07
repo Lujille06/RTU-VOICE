@@ -1,10 +1,10 @@
 "use server";
 import { createClient } from "@/utils/supabase/server";
 import { revalidatePath } from "next/cache";
-import { generateOTP } from "./otp";
 import bcrypt from "bcrypt";
 import { Resend } from "resend";
 import * as AuthStore from "@/features/auth/authStore"
+import { generateOtp, hashOtp } from "@/features/auth";
 
 export type RegisterState = {
     success: boolean;
@@ -134,15 +134,15 @@ export async function validateAndSendOtp(formData: FormData): Promise<RegisterSt
 
     try {
         // 1. Generate OTP
-        otpCode = await generateOTP();
+        otpCode = await generateOtp();
         debugMessage += `1. Generated OTP: ${otpCode} (Type: ${typeof otpCode})\n`;
 
         // 2. Hash it
-        hashedOtp = await bcrypt.hash(otpCode, 10); 
+        hashedOtp = await hashOtp(otpCode); 
         debugMessage += `2. Hash completed successfully.\n`;
 
         // 3. Database Insert
-        const { error: otp_upsert_error } = await supabase
+        const { error: otp_insert_error } = await supabase
             .from("otp_verifications")
             .insert({
                 email: email,
@@ -151,8 +151,8 @@ export async function validateAndSendOtp(formData: FormData): Promise<RegisterSt
                 attempts: 0,
             });
 
-        if (otp_upsert_error) {
-            debugMessage += `3. Database Error: ${otp_upsert_error.message}\n`;
+        if (otp_insert_error) {
+            debugMessage += `3. Database Error: ${otp_insert_error.message}\n`;
         } else {
             debugMessage += `3. Database insert succeeded.\n`;
         }
@@ -215,7 +215,7 @@ export async function verifyAndRegisterUser(formData: FormData): Promise<verifyS
 
     const purpose_id = 1; // Registration id
 
-    const {data: emailData, error: emailError} = await supabase.from("otp_verifications").select("email, hashed_code, attempts, created_at, expires_at").eq("email", email).eq("purpose_id", purpose_id).order("created_at", {ascending: false}).limit(1);
+    const {data: emailData, error: emailError} = await supabase.from("otp_verifications").select("id, email, hashed_code, attempts, created_at, expires_at").eq("email", email).eq("purpose_id", purpose_id).order("created_at", {ascending: false}).limit(1);
     
     if (emailError){
         return ({
@@ -270,6 +270,14 @@ export async function verifyAndRegisterUser(formData: FormData): Promise<verifyS
     const isMatch = await bcrypt.compare(otpCode, mostRecentOtp.hashed_code);
     // compare it in the database
     if(!isMatch){
+        const {error: attemptUpdateError} = await supabase.from("otp_verifications").update({attempts: Number(mostRecentOtp['attempts']) + 1}).eq("id", mostRecentOtp['id']).select();
+
+        if (attemptUpdateError){
+            return({
+                success: false,
+                message: "Failed to update attempt count"
+            })
+        }
         return {
             success: false,
             message: "Otp doesnt match"
@@ -371,23 +379,50 @@ export async function resendOtp(purpose_id: number){
     }
 
     // invalid the old one
-    const {error} = await supabase.from("otp_verifications").update({expires_at: Date.now()}).eq("id", otpData[0].id).select()
+    const {error:updateOtpError} = await supabase.from("otp_verifications").update({expires_at: Date.now()}).eq("id", otpData[0].id).select()
 
-    if(error){
+    if(updateOtpError){
         return ({
             success: false,
-            message: error.message
+            message: updateOtpError.message
         })
     }
 
     // generate new otp and hash it
-    const newOtp = await generateOTP();
-    // const newHashedOtp = await
+    const newOtpCode = await generateOtp();
 
+    const newHashedOtp = await hashOtp(newOtpCode);
 
     // insert to the db
+    const {error: insertOtpError} = await supabase.from("otp_verifications").insert({
+                email: email,
+                hashed_code: newHashedOtp,
+                purpose_id: purpose_id,
+                attempts: 0,
+            }).select();
+    
+    if (insertOtpError){
+        return ({
+            success: false,
+            message: "Inserting otp error"
+        })
+    }
 
     // send email    
+    const resend = new Resend(process.env.RESEND_API_KEY);
+    await resend.emails.send({
+        from: 'onboarding@resend.dev',
+        to: 'delivered@resend.dev', 
+        subject: "Resend",
+        html: `
+            <h1>Your OTP Code is: ${newOtpCode}</h1>
+        `
+    });
+
+    return ({
+        success: true,
+        message: "Email sent"
+    })
 }
 
 // login user

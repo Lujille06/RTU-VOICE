@@ -1,7 +1,8 @@
 "use client";
 
-import { verifyAndRegisterUser } from "@/actions/actions";
+import { verifyAndRegisterUser, resendOtp } from "@/actions/actions";
 import { useState } from "react";
+
 export function VerifyForm(){
     const [errorMessage, setErrorMessage] = useState<string>("");
 
@@ -13,6 +14,10 @@ export function VerifyForm(){
             setErrorMessage(result.message);
         }
         
+    }
+
+    async function handleResendOtp(){
+        resendOtp(1);
     }
 
     return (
@@ -27,7 +32,7 @@ export function VerifyForm(){
                 <input name="sixth_digit" maxLength={1}></input>
                 <button type="submit">Submit</button>
             </form>
-            
+            <button >Resend Code</button>
         </div>
     );
 }
