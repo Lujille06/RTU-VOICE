@@ -1,4 +1,3 @@
-import { PassThrough } from "stream";
 import { create } from "zustand";
 
 type FirstNameStore = {
@@ -15,7 +14,8 @@ type LastNameStore = {
 
 type EmailStore = {
     email: string;
-    setEmail: (email: string) => void;
+    flowType: "registration" | "password_reset" | null;
+    setEmail: (email: string, flowType: "registration" | "password_reset") => void;
     reset: () => void;
 }
 
@@ -29,25 +29,30 @@ type PasswordStore = {
 
 export const useFirstNameStore = create<FirstNameStore>((set, _, store) => ({ // set, get, store they are position-dependent. set and get are helper method, while store is the instance or object itself
     firstName: "",
+    
     setFirstName: (fname:string) => set({firstName: fname}),
     reset: () => set(store.getInitialState())
 }));
 
 export const useLastNameStore = create<LastNameStore>((set, _, store) => ({
     lastName: "",
+
     setLastName: (lname: string) => set({lastName: lname}),
     reset: () => set(store.getInitialState())
 }));
 
 export const useEmailStore = create<EmailStore>((set, _, store) => ({
     email: "",
-    setEmail: (email: string) => set({email: email}),
+    flowType: null,
+
+    setEmail: (email: string, flowType:"password_reset" | "registration") => set({email: email, flowType: flowType}),
     reset: () => set(store.getInitialState())
 
 }));
 
 export const usePasswordStore = create<PasswordStore>((set, _, store) => ({
     password: "",
+
     setPassword: (password: string) => set({password: password}),
     reset: () => set(store.getInitialState())
 

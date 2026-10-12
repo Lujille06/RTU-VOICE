@@ -23,7 +23,7 @@ export default function RegisterPage(){
             {step === "register" && (
                 <main>
                     <h1>Register Page</h1>
-                    <RegisterForm onNext={handleAccountCreated}></RegisterForm>
+                    <RegisterForm nextStep={handleAccountCreated}></RegisterForm>
                     <div> 
                         <p>Already have an account?</p>
                         <Link href="/login">Login</Link>
@@ -35,7 +35,7 @@ export default function RegisterPage(){
             {step === "verify" && (
                 <main>
                     <h1>Enter the code</h1>
-                    <VerifyForm></VerifyForm>
+                    <VerifyForm purpose={"registration"} nextStep={handleAccountVerified}></VerifyForm>
                 </main>
             )}
             

@@ -1,0 +1,260 @@
+"use server";
+
+import { cookies } from "next/headers";
+import { revalidatePath } from "next/cache";
+import { createAdminClient } from "@/utils/supabase/admin";
+import { createClient } from "@/utils/supabase/server";
+import { redirect } from "next/navigation";
+import { RESET_COOKIE, isRtuEmail, validatePassword, emailIsRegistered,
+  issueOtp, checkOtp, setResetToken, readResetToken, str } from "@/features/auth/authUtils"
+import { type RegisterState, type resendState, type LoginState, type PendingRegistration, 
+    type verifyState, type Purpose } from "@/features/auth/authTypes";
+
+
+
+/* ------------------------------------------------------------------ */
+/* Registration                                                        */
+/* ------------------------------------------------------------------ */
+
+// validate registration input and send an OTP. The CLIENT keeps the pending values.
+export async function validateAndSendOtp(formData: FormData): Promise<RegisterState> {
+    const firstName = str(formData.get("firstName")).trim();
+    const lastName = str(formData.get("lastName")).trim();
+    const email = str(formData.get("email")).trim().toLowerCase();
+    const password = str(formData.get("password"));            // not trimmed
+    const confirmPassword = str(formData.get("confirmPassword"));
+
+    const errors: NonNullable<RegisterState["errors"]> = {};
+
+    if (!firstName){
+        return {success: false, message: "Invalid input", errors: {
+            firstName: ["Please enter your first name."]
+        }};
+    } 
+    if (!lastName){
+        return {success: false, message: "Invalid input", errors: {
+            lastName: ["Please enter your last name."]
+        }};
+    } 
+    if (!isRtuEmail(email)){
+        return {success: false, message: "Invalid input", errors: {
+            email: ["Please enter your institutional email."]
+        }};
+    } 
+
+    const passwordError = validatePassword(password)
+    if (passwordError){
+        return {success: false, message: "Invalid input", errors: {
+            password: [passwordError]
+        }};
+    } 
+
+    if (!confirmPassword){
+        return {success: false, message: "Invalid input", errors: {
+            confirmPassword: ["Please confirm your password."]
+        }};
+    } 
+
+    if (confirmPassword !== password){
+        return {success: false, message: "Invalid input", errors: {
+            confirmPassword: ["Passwords don't match."]
+        }}
+    }
+
+    // if (!lastName) errors.lastName = ["Please enter your last name."];
+    // if (!isRtuEmail(email)) errors.email = ["Please enter your institutional email."];
+
+    // const passwordError = validatePassword(password);
+    // if (passwordError) errors.password = [passwordError];
+
+    // if (!confirmPassword) errors.confirmPassword = ["Please confirm your password."];
+    // else if (confirmPassword !== password) errors.confirmPassword = ["Passwords don't match."];
+
+    // if (Object.keys(errors).length > 0) {
+    //     return { success: false, message: "Invalid input.", errors };
+    // }
+
+    const registered = await emailIsRegistered(email);
+    if (registered === null) {
+        return { success: false, message: "Something went wrong. Please try again." };
+    }
+    if (registered) {
+        return {
+            success: false,
+            message: "Email has already been used.",
+            errors: { email: ["Email has already been used."] },
+        };
+    }
+
+    return issueOtp(email, "registration");
+}
+
+// verify the OTP, then create the (already email-verified) account
+export async function verifyAndRegisterUser(
+    formData: FormData,
+    pending: PendingRegistration
+): Promise<verifyState> {
+    const email = (pending?.email ?? "").trim().toLowerCase();
+    const firstName = (pending?.firstName ?? "").trim();
+    const lastName = (pending?.lastName ?? "").trim();
+    const password = pending?.password ?? "";
+
+    if (!isRtuEmail(email) || !firstName || !lastName || validatePassword(password)) {
+        return { success: false, message: "Registration details are missing or invalid. Please start again." };
+    }
+
+    const registered = await emailIsRegistered(email);
+    if (registered === null) {
+        return { success: false, message: "Something went wrong. Please try again." };
+    }
+    if (registered) {
+        return { success: false, message: "Email has already been used." };
+    }
+
+    const check = await checkOtp(formData, email, "registration");
+    if (!check.success) return check;
+
+    const supabase = await createAdminClient();
+    const { error } = await supabase.auth.admin.createUser({
+        email,
+        password,
+        email_confirm: true, // we already verified the email with our own OTP
+        user_metadata: { first_name: firstName, last_name: lastName },
+    });
+
+    if (error) {
+        console.error("[verifyAndRegisterUser] createUser failed:", error);
+        return { success: false, message: "Couldn't create your account. Please request a new code and try again." };
+    }
+
+    return { success: true, message: "" };
+}
+
+/* ------------------------------------------------------------------ */
+/* Resend                                                              */
+/* ------------------------------------------------------------------ */
+
+export async function resendOtp(purpose: Purpose, rawEmail: string): Promise<resendState> {
+    const email = (rawEmail ?? "").trim().toLowerCase();
+
+    if (!isRtuEmail(email)) {
+        return { success: false, message: "Invalid email." };
+    }
+
+    const registered = await emailIsRegistered(email);
+    if (registered === null) {
+        return { success: false, message: "Something went wrong. Please try again." };
+    }
+    if (purpose === "registration" && registered) {
+        return { success: false, message: "Email has already been used." };
+    }
+    if (purpose === "password_reset" && !registered) {
+        return { success: false, message: "Your institutional email is not registered yet!" };
+    }
+
+    const result = await issueOtp(email, purpose);
+    return result.success ? { success: true, message: "Successfully sent an email." } : result;
+}
+
+/* ------------------------------------------------------------------ */
+/* Login                                                               */
+/* ------------------------------------------------------------------ */
+
+export async function validateAndloginUser(formData: FormData): Promise<LoginState> {
+    const supabase = await createClient();
+
+    const email = str(formData.get("email")).trim().toLowerCase();
+    const password = str(formData.get("password"));
+
+    if (!email) return { success: false, message: "Enter your institutional email" };
+    if (!password) return { success: false, message: "Enter your password" };
+
+    const { error } = await supabase.auth.signInWithPassword({ email, password });
+
+    if (error) {
+        return { success: false, message: error.message };
+    }
+    redirect("/homepage")
+    return { success: true, message: "success" };
+}
+
+/* ------------------------------------------------------------------ */
+/* Password reset                                                      */
+/* ------------------------------------------------------------------ */
+
+// step 1: validate the email and send a reset OTP. The CLIENT remembers the email.
+export async function validateEmailForPwReset(formData: FormData): Promise<verifyState> {
+    const email = str(formData.get("email")).trim().toLowerCase();
+
+    if (!email) return { success: false, message: "Please enter your institutional email" };
+    if (!isRtuEmail(email)) return { success: false, message: "Not a valid RTU institutional email" };
+
+    const registered = await emailIsRegistered(email);
+    if (registered === null) {
+        return { success: false, message: "Something went wrong. Please try again." };
+    }
+    // Note: this reveals which emails are registered. If that matters to you, return the
+    // same success message either way and only send the email when registered.
+    if (!registered) {
+        return { success: false, message: "Your institutional email is not registered yet!" };
+    }
+
+    const result = await issueOtp(email, "password_reset");
+    if (!result.success) return result;
+
+    return { success: true, message: "Email is validated and OTP is sent" };
+}
+
+// step 2: verify the OTP -> sets a signed, short-lived cookie proving it
+export async function verifyResetOtp(formData: FormData, rawEmail: string): Promise<verifyState> {
+    const email = (rawEmail ?? "").trim().toLowerCase();
+    if (!isRtuEmail(email)) {
+        return { success: false, message: "Invalid email." };
+    }
+
+    const check = await checkOtp(formData, email, "password_reset");
+    if (!check.success) return check;
+
+    await setResetToken(email);
+    return { success: true, message: "Code verified." };
+}
+
+// step 3: set the new password (only works with a valid verified-reset cookie)
+export async function resetPassword(formData: FormData): Promise<verifyState> {
+    const email = await readResetToken();
+    if (!email) {
+        return { success: false, message: "Your reset session expired. Please verify your email again." };
+    }
+
+    const newPassword = str(formData.get("newPassword"));
+    const confirmPassword = str(formData.get("confirmPassword"));
+
+    const passwordError = validatePassword(newPassword);
+    if (passwordError) return { success: false, message: passwordError };
+    if (!confirmPassword) return { success: false, message: "Please confirm your new password." };
+    if (newPassword !== confirmPassword) return { success: false, message: "Passwords don't match." };
+
+    const supabase = await createAdminClient();
+
+    const { data: userData, error: userError } = await supabase
+        .from("users")
+        .select("id")
+        .eq("rtu_email", email)
+        .maybeSingle();
+
+    if (userError || !userData) {
+        return { success: false, message: "Account not found. Cannot reset password." };
+    }
+
+    const { error: updateError } = await supabase.auth.admin.updateUserById(userData.id, {
+        password: newPassword,
+    });
+
+    if (updateError) {
+        console.error("[resetPassword] update failed:", updateError);
+        return { success: false, message: "Couldn't update your password. Please try again." };
+    }
+
+    (await cookies()).delete(RESET_COOKIE); // one-time use
+    return { success: true, message: "Successfully updated password" };
+}
