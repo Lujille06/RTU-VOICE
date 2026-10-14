@@ -35,8 +35,25 @@ export function validatePassword(password: string): string | null {
     if (password.length < MIN_PASSWORD_LENGTH) {
         return `Password must be at least ${MIN_PASSWORD_LENGTH} characters.`;
     }
+    
+    // Character requirement validation
+    const hasLowercase = /[a-z]/.test(password);
+    const hasUppercase = /[A-Z]/.test(password);
+    const hasDigit = /\d/.test(password);
+
+    if (!hasLowercase) {
+        return "Password must contain at least one lowercase letter.";
+    }
+    if (!hasUppercase) {
+        return "Password must contain at least one uppercase letter.";
+    }
+    if (!hasDigit) {
+        return "Password must contain at least one digit.";
+    }
+    
     return null;
 }
+
 
 /** true / false, or null if the database call failed */
 export async function emailIsRegistered(email: string): Promise<boolean | null> {

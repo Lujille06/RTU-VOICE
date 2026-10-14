@@ -38,15 +38,15 @@ export function RegisterForm({nextStep}: ButtonStepProps){
 
                 <label htmlFor="firstName">First Name:</label>
                 <input name="firstName" type="text" placeholder="Juan" required></input>
-                {error && <div>{error.firstName}</div>}
+                {error?.firstName && <div>{error.firstName}</div>}
                 <input name="lastName" type="text" placeholder="Dela Cruz" required></input>
-                {error && <div>{error.lastName}</div>}
+                {error?.lastName && <div>{error.lastName}</div>}
                 <input name="email" type="email" placeholder="studentId@rtu.edu.ph" required></input>
-                {error && <div>{error.email}</div>}
+                {error?.email && <div>{error.email}</div>}
                 <input name="password" type="password" placeholder="Enter your password" required></input>
-                {error && <div>{error.password}</div>}
+                {error?.password && <div>{error.password}</div>}
                 <input name="confirmPassword" type="password" placeholder="Enter your password" required></input>
-                {error && <div>{error.confirmPassword}</div>}
+                {error?.confirmPassword && <div>{error.confirmPassword}</div>}
                 
                 <button type="submit">Register</button>
             </form>

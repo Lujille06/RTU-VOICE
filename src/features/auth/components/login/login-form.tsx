@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { validateAndloginUser } from "@/actions/authActions";
+import { redirect } from "next/navigation";
 
 export function LoginForm(){
     const [error, setError] = useState<string>("");
@@ -16,9 +17,7 @@ export function LoginForm(){
             setError(result.message);
             return;
         }
-        // router.push("/homepage");
-        
-    }
+}
 
     return(
         <div>

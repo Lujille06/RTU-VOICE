@@ -10,6 +10,17 @@ export type RegisterState = {
     };
 };
 
+export type ChangePasswordType = {
+    success: boolean,
+    message: string,
+    errors?: {
+        oldPassword?: string,
+        newPassword?: string,
+        confirmPassword?: string
+    }
+
+}
+
 export type resendState = { success: boolean; message: string };
 export type LoginState = { success: boolean; message: string };
 

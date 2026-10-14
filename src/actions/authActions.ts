@@ -8,7 +8,7 @@ import { redirect } from "next/navigation";
 import { RESET_COOKIE, isRtuEmail, validatePassword, emailIsRegistered,
   issueOtp, checkOtp, setResetToken, readResetToken, str } from "@/features/auth/authUtils"
 import { type RegisterState, type resendState, type LoginState, type PendingRegistration, 
-    type verifyState, type Purpose } from "@/features/auth/authTypes";
+    type verifyState, type Purpose, type ChangePasswordType } from "@/features/auth/authTypes";
 
 
 
@@ -97,7 +97,7 @@ export async function verifyAndRegisterUser(
     const email = (pending?.email ?? "").trim().toLowerCase();
     const firstName = (pending?.firstName ?? "").trim();
     const lastName = (pending?.lastName ?? "").trim();
-    const password = pending?.password ?? "";
+    const password = (pending?.password ?? "").trim();
 
     if (!isRtuEmail(email) || !firstName || !lastName || validatePassword(password)) {
         return { success: false, message: "Registration details are missing or invalid. Please start again." };
@@ -160,7 +160,7 @@ export async function resendOtp(purpose: Purpose, rawEmail: string): Promise<res
 /* Login                                                               */
 /* ------------------------------------------------------------------ */
 
-export async function validateAndloginUser(formData: FormData): Promise<LoginState> {
+export async function validateAndloginUser(formData: FormData) {
     const supabase = await createClient();
 
     const email = str(formData.get("email")).trim().toLowerCase();
@@ -169,13 +169,14 @@ export async function validateAndloginUser(formData: FormData): Promise<LoginSta
     if (!email) return { success: false, message: "Enter your institutional email" };
     if (!password) return { success: false, message: "Enter your password" };
 
-    const { error } = await supabase.auth.signInWithPassword({ email, password });
+    const { data, error } = await supabase.auth.signInWithPassword({ email, password });
 
     if (error) {
         return { success: false, message: error.message };
     }
+    revalidatePath("/", "layout");
     redirect("/homepage")
-    return { success: true, message: "success" };
+    
 }
 
 /* ------------------------------------------------------------------ */
@@ -231,6 +232,7 @@ export async function resetPassword(formData: FormData): Promise<verifyState> {
 
     const passwordError = validatePassword(newPassword);
     if (passwordError) return { success: false, message: passwordError };
+
     if (!confirmPassword) return { success: false, message: "Please confirm your new password." };
     if (newPassword !== confirmPassword) return { success: false, message: "Passwords don't match." };
 
@@ -257,4 +259,65 @@ export async function resetPassword(formData: FormData): Promise<verifyState> {
 
     (await cookies()).delete(RESET_COOKIE); // one-time use
     return { success: true, message: "Successfully updated password" };
+}
+
+export async function ChangePassword(formData: FormData): Promise<ChangePasswordType>{
+    const oldPassword = str(formData.get("oldPassword")).trim();
+    const newPassword = str(formData.get("newPassword")).trim();
+    const confirmPassword = str(formData.get("confirmPassword")).trim();
+
+    if (!oldPassword) return { success: false, message: "Invalid input", errors: {oldPassword: "Please enter your Old Password"}};
+
+    if (!newPassword) return { success: false, message: "Invalid input", errors: {oldPassword: "Please enter your new Password"}};
+
+    const passwordError = validatePassword(newPassword);
+    if (passwordError) return { success: false, message: "Invalid input", errors: {newPassword: passwordError}};
+
+    if (!confirmPassword) return { success: false, message: "Invalid input", errors: {confirmPassword: "Please confirm your new Password"}};
+    
+    if (confirmPassword !== newPassword) return { success: false, message: "Invalid input", errors: {confirmPassword: "Password don't match."}};
+    
+    const supabase = await createClient();
+
+    const {data} = await supabase.auth.getUser();
+    if (!data) return {success: false, message: "Error in getting user's data. Please try again."};
+    if (!data.user) return {success: false, message: "Please login first"};
+
+    const email = data.user.email;
+    if (!email) return {success: false, message: "Error in getting user's email"}
+    
+    const {error: updateError} = await supabase.auth.updateUser({current_password:oldPassword, password: newPassword});
+    
+    if (updateError) {
+        console.log(updateError.status, updateError.code, updateError.message); // check these once in dev
+
+        if (updateError.status === 400) return {success: false, message:"Invalid input", errors:{oldPassword: 'Current password is required when setting new password'}};
+        if (updateError.status === 422) return {success: false, message:"Invalid input", errors:{newPassword: 'New password should be different from the old password.'}};
+        if (updateError.code === 'current_password_invalid') return {success: false, message: 'Invalid input', errors: {oldPassword: "Incorrect password."}};
+        if (updateError.code === 'weak_password') return {success: false, message:'Password is too weak. Please enter 8 charcters at least one lowercase and uppercase letter, and digits'};
+        if (updateError.status === 429) return {success: false, message:'Too many attempts. Try again later.'};
+        return {success: false, message:'Current password is incorrect or the update failed.'};
+    }
+    
+    console.log("Successfully Updated password")
+    
+    return {
+        success: true,
+        message: ""
+    }
+}
+
+export async function isAuthenticated(): Promise<boolean> {
+    const supabase = await createClient();
+    const { data: { user }, error } = await supabase.auth.getUser();
+
+    return !error && !!user;
+}
+
+export async function logoutUser() {
+    const supabase = await createClient();
+    await supabase.auth.signOut();
+
+    revalidatePath("/", "layout");
+    redirect("/login");
 }
