@@ -2,9 +2,7 @@
 
 import { ChangePassword } from "@/actions/authActions";
 import { useState } from "react";
-import { verifyState } from "../studentTypes";
 import { ChangePasswordType } from "@/features/auth/authTypes";
-import { redirect } from "next/navigation";
 
 export default function ChangePasswordForm(){
     const [error, setError] = useState<ChangePasswordType["errors"]>({});

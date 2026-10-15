@@ -170,12 +170,12 @@ export async function validateAndloginUser(formData: FormData) {
     if (!password) return { success: false, message: "Enter your password" };
 
     const { data, error } = await supabase.auth.signInWithPassword({ email, password });
-
+    console.log(data);
     if (error) {
         return { success: false, message: error.message };
     }
     revalidatePath("/", "layout");
-    redirect("/homepage")
+    redirect("/student")
     
 }
 

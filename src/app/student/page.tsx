@@ -6,11 +6,12 @@ export default async function HomePage(){
     const supabase = await createClient();
     const isLogin = await isAuthenticated();
 
+    // const firstName = 
     if (!isLogin){
         redirect("/login");
     }
 
     return (<div>
-
+        <h1>Welcome, {}</h1>
     </div>);
 }
