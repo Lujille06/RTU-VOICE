@@ -1,6 +1,9 @@
 import StudendNavBar from "@/components/layout/Navbar/student-navbar";
+import { requireRole } from "@/features/auth/guards";
 
-export default function AuthLayout({children,}: {children: React.ReactNode;}){
+export default async function AuthLayout({children,}: {children: React.ReactNode;}){
+    await requireRole("student");
+    
     return (
        
         <div className='auth-container'>

@@ -3,9 +3,16 @@
 import { getCurrentUser } from "@/features/auth/guards";
 import { createClient } from "@/utils/supabase/server";
 import { str } from "@/features/shared/sharedUtils";
+import { generateTrackingId } from "@/features/student/studentUtils";
 export type SubmitComplaintState = {
     success: boolean;
     message: string;
+    errors?: {
+        title?: string,
+        category?: string,
+        description?: string,
+        evidence?: string
+    };
     trackingId?: string;
 };
 
@@ -40,28 +47,28 @@ export async function submitComplaint(formData: FormData): Promise<SubmitComplai
         .filter((f): f is File => f instanceof File && f.size > 0);
 
     // 3. validate
-    if (!title) return { success: false, message: "Please enter a title." };
+    if (!title) return { success: false, message:"", errors: {title: "Please enter a title." }};
     if (title.length > TITLE_MAX) {
-        return { success: false, message: `Title must be ${TITLE_MAX} characters or fewer.` };
+        return { success: false, message:"", errors: {title: `Title must be ${TITLE_MAX} characters or fewer.`}  };
     }
     if (!description) return { success: false, message: "Please enter a description." };
     if (description.length > DESCRIPTION_MAX) {
-        return { success: false, message: `Description must be ${DESCRIPTION_MAX} characters or fewer.` };
+        return { success: false, message:"", errors: {description:`Description must be ${DESCRIPTION_MAX} characters or fewer.` }};
     }
     if (!Number.isInteger(categoryId) || categoryId <= 0) {
-        return { success: false, message: "Please choose a category." };
+        return { success: false, message:"", errors: {category:"Please choose a category." }};
     }
 
     if (evidence.length > MAX_FILES) {
-        return { success: false, message: `You can attach up to ${MAX_FILES} files.` };
+        return { success: false, message:"", errors: {evidence:`You can attach up to ${MAX_FILES} files.` }};
     }
     const totalBytes = evidence.reduce((sum, f) => sum + f.size, 0);
     if (totalBytes > MAX_TOTAL_BYTES) {
-        return { success: false, message: "Evidence must be 5 MB or less in total." };
+        return { success: false, message:"", errors: {evidence:"Evidence must be 5 MB or less in total." }};
     }
     if (evidence.some((f) => !ALLOWED_TYPES.includes(f.type))) {
         // note: file.type comes from the browser; check file signatures too if you need stricter rules
-        return { success: false, message: "One of the files has an unsupported type." };
+        return { success: false, message:"", errors: {evidence:"One of the files has an unsupported type."}};
     }
 
     // 4. does the category really exist?
@@ -76,14 +83,22 @@ export async function submitComplaint(formData: FormData): Promise<SubmitComplai
         return { success: false, message: "Invalid category." };
     }
 
-    // 5. TODO (your part):
+    await supabase.rpc("submit_complaint")
     //  - generate the tracking ID (e.g. STU-XXXXX) and make sure it is unique
+    // let trackingId = "";
+
+    // for(let attempt = 0; attempt < 5; attempt++){
+    //     trackingId = generateTrackingId();
+
+    //     supabase.from("complaints").insert({title: title, description: description, user_id: me.id, category_id:categoryId, tracking_id: trackingId,});
+
+    // }
     //  - insert into complaints: user_id: me.id, category_id, title, description,
     //    status_id: 1 (pending), release_to_public: releaseToPublic
+
     //  - upload the evidence (better: from the browser straight to Supabase Storage,
     //    then pass only the file paths here, because of the body size limits)
-    //  - run the AI step for priority + public summary
-    //  - never return priority_id to the student
+  
 
     return { success: true, message: "Your concern was submitted.", trackingId: "TODO" };
 }

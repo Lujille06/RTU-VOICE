@@ -63,7 +63,7 @@ export function VerifyForm({purpose, nextStep}: VerifyFormType){
     }
 
     async function handleResendOtp(){
-        const result = await resendOtp(purpose, AuthStore.useEmailStore.getState().email);
+        const result = await resendOtp(purpose, AuthStore.useEmailStore.getState().email, AuthStore.useFirstNameStore.getState().firstName);
         
         if(!result.success){
             setErrorMessage(result.message)

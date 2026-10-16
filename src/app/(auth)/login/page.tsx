@@ -1,7 +1,9 @@
 import { LoginForm } from "@/features/auth";
 import Link from "next/link";
+import { redirectIfAuthenticated } from "@/features/auth/guards";
 
-export default function LoginPage(){
+export default async function LoginPage(){
+    await redirectIfAuthenticated();
     return(
         <main>
             <h1>Login Page</h1>

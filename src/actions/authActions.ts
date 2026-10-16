@@ -9,7 +9,7 @@ import { RESET_COOKIE, isRtuEmail, validatePassword, emailIsRegistered,
   issueOtp, checkOtp, setResetToken, readResetToken, str } from "@/features/auth/authUtils"
 import { type RegisterState, type resendState, type LoginState, type PendingRegistration, 
     type verifyState, type Purpose, type ChangePasswordType } from "@/features/auth/authTypes";
-
+import { ROLE_BY_ID, ROLE_HOME } from "@/features/auth/guards";
 
 
 /* ------------------------------------------------------------------ */
@@ -86,14 +86,14 @@ export async function validateAndSendOtp(formData: FormData): Promise<RegisterSt
         };
     }
 
-    return issueOtp(email, "registration");
+    return issueOtp(firstName, email, "registration");
 }
 
 // verify the OTP, then create the (already email-verified) account
 export async function verifyAndRegisterUser(
     formData: FormData,
     pending: PendingRegistration
-): Promise<verifyState> {
+) {
     const email = (pending?.email ?? "").trim().toLowerCase();
     const firstName = (pending?.firstName ?? "").trim();
     const lastName = (pending?.lastName ?? "").trim();
@@ -127,14 +127,15 @@ export async function verifyAndRegisterUser(
         return { success: false, message: "Couldn't create your account. Please request a new code and try again." };
     }
 
-    return { success: true, message: "" };
+    revalidatePath("/", "layout");
+    redirect("/login");
 }
 
 /* ------------------------------------------------------------------ */
 /* Resend                                                              */
 /* ------------------------------------------------------------------ */
 
-export async function resendOtp(purpose: Purpose, rawEmail: string): Promise<resendState> {
+export async function resendOtp(purpose: Purpose, rawEmail: string, firstName: string): Promise<resendState> {
     const email = (rawEmail ?? "").trim().toLowerCase();
 
     if (!isRtuEmail(email)) {
@@ -152,7 +153,7 @@ export async function resendOtp(purpose: Purpose, rawEmail: string): Promise<res
         return { success: false, message: "Your institutional email is not registered yet!" };
     }
 
-    const result = await issueOtp(email, purpose);
+    const result = await issueOtp(firstName, email, purpose);
     return result.success ? { success: true, message: "Successfully sent an email." } : result;
 }
 
@@ -170,12 +171,20 @@ export async function validateAndloginUser(formData: FormData) {
     if (!password) return { success: false, message: "Enter your password" };
 
     const { data, error } = await supabase.auth.signInWithPassword({ email, password });
-    console.log(data);
     if (error) {
         return { success: false, message: error.message };
     }
+
+    const { data: profile } = await supabase.from("users").select("role_id").eq("id", data.user.id).maybeSingle();
+    const role = profile ? ROLE_BY_ID[profile.role_id] : undefined;
+
+    if (!role) {
+        await supabase.auth.signOut();
+        return { success: false, message: "Your account has no role assigned." };
+    }
+
     revalidatePath("/", "layout");
-    redirect("/student")
+    redirect(ROLE_HOME[role]);
     
 }
 
@@ -199,8 +208,15 @@ export async function validateEmailForPwReset(formData: FormData): Promise<verif
     if (!registered) {
         return { success: false, message: "Your institutional email is not registered yet!" };
     }
+    const supabase = await createClient();
+    const {data: fetchName, error: fetchError} = await supabase.from("users").select("first_name").eq("rtu_email", email).maybeSingle();
 
-    const result = await issueOtp(email, "password_reset");
+    if( fetchError || !fetchName){
+        console.log(`Name fetch error ${fetchError}`)
+        return { success: false, message: "Couldn't find your data. Try again"};
+    }
+
+    const result = await issueOtp(fetchName['first_name'], email, "password_reset");
     if (!result.success) return result;
 
     return { success: true, message: "Email is validated and OTP is sent" };
@@ -305,13 +321,6 @@ export async function ChangePassword(formData: FormData): Promise<ChangePassword
         success: true,
         message: ""
     }
-}
-
-export async function isAuthenticated(): Promise<boolean> {
-    const supabase = await createClient();
-    const { data: { user }, error } = await supabase.auth.getUser();
-
-    return !error && !!user;
 }
 
 export async function logoutUser() {

@@ -5,7 +5,7 @@ import bcrypt from 'bcrypt';
 import { cookies } from "next/headers";
 import { createHmac, timingSafeEqual } from "crypto";
 import { createAdminClient } from "@/utils/supabase/admin";
-import { sendRegistrationEmail, sendResetPasswordEmail } from "@/utils/mail";
+import { sendRegistrationEmail, sendResetPasswordEmail } from "@/utils/email/otp-email";
 import { PURPOSE, type Purpose, type verifyState } from "./authTypes";
 
 /* ------------------------------------------------------------------ */
@@ -118,7 +118,7 @@ export async function readResetToken(): Promise<string | null> {
 /* ------------------------------------------------------------------ */
 
 // enforces cooldown + daily cap, stores a hashed OTP, invalidates older ones, emails the code
-export async function issueOtp(email: string, purpose: Purpose): Promise<{ success: boolean; message: string }> {
+export async function issueOtp(firstName: string, email: string, purpose: Purpose): Promise<{ success: boolean; message: string }> {
     const supabase = await createAdminClient();
     const purposeId = PURPOSE[purpose];
     const since = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
@@ -175,8 +175,8 @@ export async function issueOtp(email: string, purpose: Purpose): Promise<{ succe
 
     const result =
         purpose === "registration"
-            ? await sendRegistrationEmail(email, otpCode)
-            : await sendResetPasswordEmail(email, otpCode);
+            ? await sendRegistrationEmail(email, otpCode, firstName)
+            : await sendResetPasswordEmail(email, otpCode, firstName);
 
     if (!result.success) {
         return { success: false, message: "Failed to send the email. Please try again." };

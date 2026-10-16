@@ -1,16 +1,18 @@
 import "server-only";
 import { Resend } from "resend";
+import { buildOtpEmail } from "./template";
 
 type MailResult = { success: boolean };
+type OtpPurpose = "registration" | "password_reset";
 
 const isProd = process.env.NODE_ENV === "production";
 
 // Shared sender used by both emails below
 async function sendOtpEmail(
+    purpose: OtpPurpose,
     to: string,
-    subject: string,
-    title: string,
-    otpCode: string
+    otpCode: string,
+    name: string
 ): Promise<MailResult> {
     // In development, Resend's test inbox swallows the email, so print the code
     // in your terminal instead. This never runs in production.
@@ -21,20 +23,20 @@ async function sendOtpEmail(
     try {
         const resend = new Resend(process.env.RESEND_API_KEY);
 
+        const { subject, html, text } = buildOtpEmail(purpose, {
+            name,
+            otp: otpCode,
+            logoUrl: `${process.env.NEXT_PUBLIC_SITE_URL}/logo.png`,
+        });
+
         // Resend does NOT throw on API failures; it returns { data, error }
         const { error } = await resend.emails.send({
             // In production, use a domain verified in Resend, e.g. "RTU Voice <no-reply@yourdomain.com>"
             from: process.env.MAIL_FROM ?? "onboarding@resend.dev",
             to: isProd ? to : "delivered@resend.dev",
             subject,
-            html: `
-                <div style="font-family: sans-serif;">
-                    <h2>${title}</h2>
-                    <p>Your OTP code is:</p>
-                    <h1 style="letter-spacing: 4px;">${otpCode}</h1>
-                    <p>This code expires soon. If you didn't request it, you can ignore this email.</p>
-                </div>
-            `,
+            html,
+            text,
         });
 
         if (error) {
@@ -49,10 +51,18 @@ async function sendOtpEmail(
     return { success: true };
 }
 
-export async function sendRegistrationEmail(email: string, otpCode: string): Promise<MailResult> {
-    return sendOtpEmail(email, "Verify your email for RTU Voice", "Verify your email", otpCode);
+export async function sendRegistrationEmail(
+    email: string,
+    otpCode: string,
+    firstName: string
+): Promise<MailResult> {
+    return sendOtpEmail("registration", email, otpCode, firstName);
 }
 
-export async function sendResetPasswordEmail(email: string, otpCode: string): Promise<MailResult> {
-    return sendOtpEmail(email, "Reset your password for RTU Voice", "Reset your password", otpCode);
+export async function sendResetPasswordEmail(
+    email: string,
+    otpCode: string,
+    firstName: string
+): Promise<MailResult> {
+    return sendOtpEmail("password_reset", email, otpCode, firstName);
 }

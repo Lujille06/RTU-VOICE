@@ -3,20 +3,22 @@ import { cache } from "react";
 import { redirect } from "next/navigation";
 import { createClient } from "@/utils/supabase/server";
 
-export type Role = "student" | "admin" | "department";
+export type Role = "student" | "admin" | "department" | "superAdmin";
 
 // matches your roles table: 1 = student, 2 = admin, 3 = department
 export const ROLE_BY_ID: Record<number, Role> = {
     1: "student",
     2: "admin",
     3: "department",
+    4: "superAdmin"
 };
 
 // where each role lands after login
 export const ROLE_HOME: Record<Role, string> = {
-    student: "/student/dashboard",
-    admin: "/admin/dashboard",
-    department: "/department/dashboard",
+    student: "/student/",
+    admin: "/admin/",
+    department: "/department/",
+    superAdmin: "/superAdmin/"
 };
 
 export type CurrentUser = {

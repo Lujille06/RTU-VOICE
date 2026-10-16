@@ -1,9 +1,10 @@
 "use client";
 
+import { submitComplaint } from "@/actions/studentActions";
 import { redirect } from "next/navigation";
 import React from "react";
 
-export default function ComplaintForm(){
+export function ComplaintForm(){
 
     const categories = ["Academic", "Facilities & Infrastucture", "Administrative", "Student Life", "Other"];
     
@@ -13,6 +14,8 @@ export default function ComplaintForm(){
         const data = e.currentTarget;
 
         const form = new FormData(data);
+
+        const result = await submitComplaint(form);
     }
     
     const handleCancelButton = () => {

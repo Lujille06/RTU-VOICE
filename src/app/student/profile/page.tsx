@@ -1,14 +1,9 @@
-import { isAuthenticated } from "@/actions/authActions";
 import ChangePasswordForm from "@/features/shared/components/change-password";
 import ProfileForm from "@/features/shared/components/profile-form";
-import { redirect } from "next/navigation";
+import { requireRole } from "@/features/auth/guards";
 
 export default async function Profile(){
-    const isLogin = await isAuthenticated();
-    
-    if (!isLogin){
-        redirect("/login");
-    }
+    await requireRole("student");
     
     return (
         <div>

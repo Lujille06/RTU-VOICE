@@ -1,7 +1,10 @@
-import ComplaintForm from "@/features/student/components/complaint-form";
+import {ComplaintForm} from "@/features/student";
+import { requireRole } from "@/features/auth/guards";
 
-export default function Submit_Complaint_Page(){
+
+export default async function Submit_Complaint_Page(){
+    await requireRole("student");
     return (<div>
-        <ComplaintForm></ComplaintForm>
+        <ComplaintForm/>
     </div>);
 }
