@@ -9,6 +9,7 @@ import {
   EMAIL_DOMAIN,
   MAX_DEPARTMENT_NAME,
   MAX_PERSON_NAME,
+  MAX_ACRONYM,
   STAFF_ROLE_ID,
   type ActivityLogFilters,
   type ActivityLogRawRow,
@@ -27,7 +28,7 @@ import {
 /* ---------------- helpers (not exported) ---------------- */
 
 // adjust "superadmin" to whatever getCurrentUser() returns for the super admin
-const isSuperAdmin = (me: { role?: string } | null | undefined) => me?.role === "superAdmin";
+const isSuperAdmin = (me: { role?: string } | null | undefined) => me?.role === "superadmin";
 
 // P0001 = messages we wrote with `raise exception` in the RPCs, safe to show
 const rpcMessage = (error: { code?: string; message: string }, fallback: string) =>
@@ -37,7 +38,6 @@ const toPage = (page?: number) => Math.max(1, Math.floor(page ?? 1));
 const optBool = (v: unknown) => (typeof v === "boolean" ? v : null);
 const EMAIL_RE = /^[^@\s]+@rtu\.edu\.ph$/;
 
-// keep the Supabase Auth user in step with public.users.is_active
 // (best effort: the database already blocks deactivated users, this also stops sign-in)
 async function syncAuthBan(userId: string, active: boolean) {
   try {
@@ -434,4 +434,64 @@ export async function renameDepartment(
 
   // revalidatePath("/superadmin", "layout");
   return { success: true, message: "Department renamed." };
+}
+
+/* ---------------- available department ---------------- */
+
+export async function getAvailableDepartments(): Promise<
+  { success: true; departments: { id: number; name: string }[] } | { success: false; message: string }
+> {
+  const me = await getCurrentUser();
+  if (!isSuperAdmin(me)) return { success: false, message: "Not allowed." };
+
+  const admin = await createAdminClient();
+  const [depts, staff] = await Promise.all([
+    admin.from("departments").select("id, name").eq("is_active", true).order("name"),
+    admin.from("users").select("department_id").eq("role_id", STAFF_ROLE_ID.department).eq("is_active", true),
+  ]);
+  if (depts.error || staff.error) {
+    console.error("[getAvailableDepartments] failed:", depts.error ?? staff.error);
+    return { success: false, message: "Couldn't load departments." };
+  }
+
+  // one active account per department: only list departments without one
+  const taken = new Set((staff.data ?? []).map((u) => u.department_id));
+  return { success: true, departments: (depts.data ?? []).filter((d) => !taken.has(d.id)) };
+}
+
+/* ---------------- add department ---------------- */
+
+/* ---------------- add department ---------------- */
+
+export async function addDepartment(
+  name: string,
+  acronym?: string
+): Promise<ActionResult<{ department_id: number }>> {
+  const me = await getCurrentUser();
+  if (!isSuperAdmin(me)) return { success: false, message: "Not allowed." };
+
+  const trimmedName = name?.trim() ?? "";
+  const trimmedAcronym = acronym?.trim() || null;
+
+  if (!trimmedName) return { success: false, message: "Department name is required." };
+  if (trimmedName.length > MAX_DEPARTMENT_NAME) {
+    return { success: false, message: "Department name is too long." };
+  }
+  if (trimmedAcronym && trimmedAcronym.length > MAX_ACRONYM) {
+    return { success: false, message: "Acronym is too long." };
+  }
+
+  const supabase = await createClient();
+  const { data, error } = await supabase.rpc("add_department", {
+    p_name: trimmedName,
+    p_acronym: trimmedAcronym,
+  });
+
+  if (error) {
+    console.error("[add_department] rpc failed:", error);
+    return { success: false, message: rpcMessage(error, "Couldn't add the department. Please try again.") };
+  }
+
+  // revalidatePath("/superadmin", "layout");
+  return { success: true, message: "Department added.", department_id: Number(data) };
 }

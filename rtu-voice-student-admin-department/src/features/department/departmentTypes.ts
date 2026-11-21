@@ -8,7 +8,7 @@ import type { SlaFields } from "@/features/shared/sharedTypes";
 export const NEXT_STATUSES = ["in_progress", "resolved"] as const;
 export type NextStatus = (typeof NEXT_STATUSES)[number];
 
-export const MAX_REASON = 1000;
+export const MAX_REASON = 2000;
 
 // status ids: 2 assigned, 3 in_progress, 4 resolved
 export const DEPARTMENT_LISTS = {
@@ -23,6 +23,7 @@ export type DepartmentListKey = keyof typeof DEPARTMENT_LISTS;
 /* ---------------- complaint lists + details ---------------- */
 
 export type DepartmentComplaintRow = SlaFields & {
+  id: string
   tracking_id: string;
   title: string;
   category_name: string;
@@ -78,6 +79,7 @@ export type DepartmentComplaintDetails = {
 /* ---------------- needs attention ---------------- */
 
 export type NeedsAttentionRow = {
+  id: string;
   tracking_id: string;
   title: string;
   category_name: string;

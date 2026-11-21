@@ -2,6 +2,11 @@ import path from "node:path";
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  experimental: {
+    serverActions: {
+      bodySizeLimit: "6mb",
+    },
+  },
   reactStrictMode: true,
   // The app lives in this subfolder, but the repo root also has an empty package-lock.json, so Next
   // guessed the wrong workspace root and warned on every build. Point it at this folder.

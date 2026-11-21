@@ -3,14 +3,14 @@ import { cache } from "react";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 
-export type Role = "student" | "admin" | "department" | "superAdmin";
+export type Role = "student" | "admin" | "department" | "superadmin";
 
 // matches your roles table: 1 = student, 2 = admin, 3 = department
 export const ROLE_BY_ID: Record<number, Role> = {
     1: "student",
     2: "admin",
     3: "department",
-    4: "superAdmin"
+    4: "superadmin"
 };
 
 // where each role lands after login
@@ -18,7 +18,7 @@ export const ROLE_HOME: Record<Role, string> = {
     student: "/dashboard",
     admin: "/admin/",
     department: "/department/",
-    superAdmin: "/superAdmin/"
+    superadmin: "/superadmin/"
 };
 
 export type CurrentUser = {
@@ -81,12 +81,16 @@ export async function redirectIfAuthenticated() {
 //   const me = await getCurrentUser();
 //   if (!me || me.role !== "admin") return { success: false, message: "Not allowed." };
 
-export function destinationFor(role: keyof typeof ROLE_HOME, next: string | null): string {
+export function destinationFor(role: Role, next: string | null): string {
   const home = ROLE_HOME[role];
-  // Internal paths only. The backslash check matters because browsers read "/\evil.com" as "//evil.com".
-  if (!next || !next.startsWith("/") || next.startsWith("//") || next.includes("\\")) return home;
+  // internal paths only; reject //, backslashes and control characters (tab/newline are stripped by browsers)
+  if (!next || !next.startsWith("/") || next.startsWith("//") || /[\\\u0000-\u001f\u007f]/.test(next)) return home;
 
-  const belongsTo = (prefix: string) => next === prefix || next.startsWith(`${prefix}/`);
-  const target = belongsTo("/admin") ? "admin" : belongsTo("/superadmin") ? "superadmin" : belongsTo("/department") ? "department" : "student";
+  const path = next.split(/[?#]/)[0].toLowerCase();
+  const belongsTo = (prefix: string) => path === prefix || path.startsWith(`${prefix}/`);
+  const target: Role = belongsTo("/admin") ? "admin"
+    : belongsTo("/superadmin") ? "superadmin"
+    : belongsTo("/department") ? "department"
+    : "student";
   return target === role ? next : home;
 }

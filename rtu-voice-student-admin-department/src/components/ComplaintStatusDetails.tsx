@@ -4,7 +4,7 @@ import { useState } from "react";
 import { Icon } from "@/components/Icon";
 import { StatusBadge } from "@/components/StatusBadge";
 import { useToast } from "@/components/Toast";
-import { getEvidenceUrl } from "@/actions/studentActions";
+import { getEvidenceUrl } from "@/actions/sharedActions";
 import { formatBytes, formatLongDate, formatMonthDay, formatTime } from "@/lib/format";
 import type { Status } from "@/lib/types";
 import { ReturnedNote, type ReturnedDetails } from "@/components/admin/ReturnedInfo";

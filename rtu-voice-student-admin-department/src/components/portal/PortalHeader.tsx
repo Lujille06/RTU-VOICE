@@ -3,11 +3,11 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState, type RefObject } from "react";
-import { useDemoStore } from "@/lib/demo-store";
 import { Icon } from "../Icon";
 import { Logo } from "../Logo";
 import styles from "./PortalHeader.module.css";
-
+import { useCurrentUser } from "./CurrentUserContext";
+// ...
 interface PortalHeaderProps {
   homeHref: string;
   profileHref: string;
@@ -34,7 +34,7 @@ export function PortalHeader({
   consoleLabel,
   consoleSub,
 }: PortalHeaderProps) {
-  const { session } = useDemoStore();
+  const session = useCurrentUser();
   const pathname = usePathname();
   const [profileOpen, setProfileOpen] = useState(false);
   const profileRef = useRef<HTMLDivElement>(null);
@@ -58,8 +58,8 @@ export function PortalHeader({
   }, [profileOpen]);
 
   if (!session) return null;
-  const fullName = `${session.firstName} ${session.lastName}`.trim();
-  const initial = (session.lastName || session.firstName || "S").charAt(0).toUpperCase();
+  const fullName = [session.firstName, session.lastName].filter(Boolean).join(" ") || session.email || "Account";
+  const initial = (session.lastName || session.firstName || session.email || "S").charAt(0).toUpperCase();
 
   return (
     <header className={styles.header}>
@@ -84,7 +84,7 @@ export function PortalHeader({
             open={profileOpen}
             onToggle={() => setProfileOpen((value) => !value)}
             fullName={fullName}
-            email={session.email}
+            email={session.email ?? ""}
             initial={initial}
             profileHref={profileHref}
             consoleSub={consoleSub}
@@ -100,7 +100,7 @@ export function PortalHeader({
           open={profileOpen}
           onToggle={() => setProfileOpen((value) => !value)}
           fullName={fullName}
-          email={session.email}
+          email={session.email ?? ""}
           initial={initial}
           profileHref={profileHref}
           onRequestLogout={() => {

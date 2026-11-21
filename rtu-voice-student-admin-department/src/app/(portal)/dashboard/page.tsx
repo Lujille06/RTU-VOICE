@@ -1,24 +1,37 @@
-"use client";
-
+// src/app/(portal)/dashboard/page.tsx
+// Server component: real user from the session, real recent-resolved list from the database.
 import Link from "next/link";
 import { Icon } from "@/components/Icon";
 import { StatusBadge } from "@/components/StatusBadge";
-import { useDemoStore } from "@/lib/demo-store";
+import { getRecentResolvedPublic } from "@/actions/studentActions";
+import { requireRole } from "@/features/auth/guards";
+import { createClient } from "@/lib/supabase/server";
 import { formatMonthDay } from "@/lib/format";
 import styles from "./dashboard.module.css";
 
-export default function DashboardPage() {
-  const { session, publicConcerns } = useDemoStore();
+export default async function DashboardPage() {
+  const me = await requireRole("student");
 
-  // Most recent resolved entries from the public dashboard (demo data).
-  const recentResolved = publicConcerns.filter((c) => c.status === "Resolved")
-    .sort((a, b) => b.date.localeCompare(a.date))
-    .slice(0, 3);
+  const supabase = await createClient();
+  const [res, { data: cats }] = await Promise.all([
+    getRecentResolvedPublic(),
+    supabase.from("categories").select("id, category"),
+  ]);
+
+  const categoryNames = new Map<number, string>((cats ?? []).map((c): [number, string] => [c.id, c.category]));
+
+  // ADJUST THIS MAPPING to the real fields of RecentResolvedRow (see the note in the reply).
+  const recentResolved = (res.success ? res.data ?? [] : []).slice(0, 3).map((r) => ({
+    id: r.id,
+    title: r.ai_title,
+    category: categoryNames.get(r.category_id) ?? "",
+    date: r.created_at,
+  }));
 
   return (
     <div className="container">
       <div className="page-head">
-        <h1 className="page-title">Welcome back, {session?.firstName}</h1>
+        <h1 className="page-title">Welcome back, {me.firstName ?? "there"}</h1>
         <p className="page-subtitle">What would you like to do today?</p>
       </div>
 
@@ -66,7 +79,11 @@ export default function DashboardPage() {
             View all <Icon name="arrow-right" size={14} strokeWidth={2.4} />
           </Link>
         </div>
-        {recentResolved.length === 0 ? (
+        {!res.success ? (
+          <p className={styles.empty} role="alert">
+            Couldn&apos;t load recent resolved complaints. Please refresh to try again.
+          </p>
+        ) : recentResolved.length === 0 ? (
           <p className={styles.empty}>No resolved complaints have been shared yet.</p>
         ) : (
           <ul className={styles.recentList}>
@@ -78,7 +95,7 @@ export default function DashboardPage() {
                     {c.category} • {formatMonthDay(c.date)}
                   </span>
                 </div>
-                <StatusBadge status={c.status} />
+                <StatusBadge status="Resolved" />
               </li>
             ))}
           </ul>

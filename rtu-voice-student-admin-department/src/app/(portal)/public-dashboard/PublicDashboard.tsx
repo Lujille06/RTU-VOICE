@@ -5,20 +5,28 @@ import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { Icon } from "@/components/Icon";
 import { StatusBadge } from "@/components/StatusBadge";
 import { formatCardDate } from "@/lib/format";
-import { CATEGORIES, PUBLIC_STATUSES, type Category, type PublicConcern, type PublicStatus } from "@/lib/types";
+import { PUBLIC_STATUSES, type Category, type PublicConcern, type PublicStatus } from "@/lib/types";
 import { getPublicComplaints } from "@/actions/studentActions"; // your real path
 import styles from "./public.module.css";
 
 const PAGE_SIZE = 6;
 
-export function PublicDashboard({ initialRows, total }: { initialRows: PublicConcern[]; total: number }) {
+export function PublicDashboard({
+  initialRows,
+  total,
+  categories,
+}: {
+  initialRows: PublicConcern[];
+  total: number;
+  categories: string[]; // names straight from the categories table
+}) {
   const params = useSearchParams();
   const router = useRouter();
   const pathname = usePathname();
 
   const status = (PUBLIC_STATUSES as readonly string[]).includes(params.get("status") ?? "") ? (params.get("status") as PublicStatus) : "";
   const rawCategory = params.get("category") ?? "";
-  const category = (CATEGORIES as readonly string[]).includes(rawCategory) ? (rawCategory as Category) : "";
+  const category = categories.includes(rawCategory) ? (rawCategory as Category) : "";
 
   const update = (next: { status?: string; category?: string }) => {
     const q = new URLSearchParams(params.toString());
@@ -112,7 +120,7 @@ export function PublicDashboard({ initialRows, total }: { initialRows: PublicCon
           </select>
           <select aria-label="Filter by category" className={`select ${styles.filter}`} value={category} onChange={(e) => update({ category: e.target.value })}>
             <option value="">Category</option>
-            {CATEGORIES.map((c) => (
+            {categories.map((c) => (
               <option key={c} value={c}>
                 {c}
               </option>

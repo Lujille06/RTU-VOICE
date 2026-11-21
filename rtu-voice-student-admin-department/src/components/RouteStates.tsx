@@ -1,10 +1,18 @@
 "use client";
+// src/components/RouteStates.tsx
 
 import Link from "next/link";
 import { useEffect } from "react";
 import { Icon } from "@/components/Icon";
-import { useDemoStore } from "@/lib/demo-store";
-import { homeFor } from "@/lib/routes";
+import { useOptionalCurrentUser } from "@/components/portal/CurrentUserContext";
+
+// Mirrors ROLE_HOME in features/auth/guards.ts. That file is "server-only", so a client component can't import it.
+const HOME_BY_ROLE = {
+  student: "/dashboard",
+  admin: "/admin",
+  department: "/department",
+  superadmin: "/superadmin", // lowercase: the folder is src/app/superadmin
+} as const;
 
 /**
  * Shown by the loading.tsx files while a route's code loads during navigation. It renders inside the
@@ -19,11 +27,12 @@ export function RouteLoading({ label = "Loading…", compact = false }: { label?
   );
 }
 
-/** Where "home" is for whoever is signed in (the landing page when signed out). */
+/** Where "home" is for whoever is signed in (the landing page outside the portals). */
 export function useHomeHref(): { href: string; label: string } {
-  const { ready, session } = useDemoStore();
-  if (!ready || !session) return { href: "/", label: "Go to home page" };
-  return { href: homeFor(session.role), label: session.role === "student" ? "Go to dashboard" : "Go to your portal" };
+  // the portal layouts put the real signed-in user in context; public pages have none
+  const user = useOptionalCurrentUser();
+  if (!user) return { href: "/", label: "Go to home page" };
+  return { href: HOME_BY_ROLE[user.role], label: user.role === "student" ? "Go to dashboard" : "Go to your portal" };
 }
 
 /**
@@ -33,7 +42,7 @@ export function useHomeHref(): { href: string; label: string } {
 export function RouteError({ error, retry }: { error: Error & { digest?: string }; retry: () => void }) {
   const home = useHomeHref();
   useEffect(() => {
-    // Frontend-only build: the console is the error log (a real deployment would report it).
+    // The browser console is the only log here; add a real error reporter if you want these tracked.
     console.error(error);
   }, [error]);
 
@@ -41,7 +50,7 @@ export function RouteError({ error, retry }: { error: Error & { digest?: string 
     <div className="route-state route-state-error" role="alert">
       <Icon name="alert-triangle" size={36} strokeWidth={1.8} />
       <h1 className="route-state-title">Something went wrong</h1>
-      <p className="route-state-text">This page couldn&apos;t load. Your data in this browser is safe. Try again, or go back to your home page.</p>
+      <p className="route-state-text">This page couldn&apos;t load. Try again, or go back to your home page.</p>
       <div className="route-state-actions">
         <button type="button" className="btn btn-primary" onClick={() => retry()}>
           Try again

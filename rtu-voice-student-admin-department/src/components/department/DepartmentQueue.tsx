@@ -1,69 +1,67 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState, type FormEvent } from "react";
-import { useDemoStore } from "@/lib/demo-store";
+import { useEffect, useRef, useState, type FormEvent } from "react";
+import { addComplaintUpdate, getComplaintDetailsDepartment, returnComplaint, updateComplaintStatus } from "@/actions/departmentActions";
+import { getComplaintUpdates } from "@/actions/sharedActions";
 import { formatMonthDay, formatShortDate, formatTime } from "@/lib/format";
-import { attentionInfo, slaInfo } from "@/lib/sla";
-import { PRIORITIES, nextDepartmentStatus, type Complaint, type DepartmentStatus } from "@/lib/types";
-import { normalizeTrackingId } from "@/lib/validation";
+import { nextDepartmentStatus, type DepartmentStatus } from "@/lib/types";
+import { PAGE_SIZE } from "@/features/shared/sharedUtils";
+import { useDebouncedSearch, useUrlFilters } from "@/components/admin/useUrlFilters";
+import { toRow, type DepartmentListKind, type DeptRaw, type Row } from "@/features/department/departmentUi";
 import { Icon } from "../Icon";
 import { Modal } from "../Modal";
 import { useToast } from "../Toast";
 import { BackToDashboard, EmptyState, Pager, PriorityDot, SearchBox, StatusPill, adminStyles as s } from "../admin/bits";
 import { StatCards } from "../admin/StatCards";
-import { useComplaintModals } from "../admin/useComplaintModals";
+import { useDepartmentModals } from "./useDepartmentModals";
 import { ReturnToAdminModal } from "./ReturnToAdminModal";
 import m from "../admin/modals.module.css";
 import d from "./department.module.css";
 
-const PAGE_SIZE = 8;
 const UPDATE_MAX = 500;
 const UPDATE_MIN = 10;
+const when = (iso: string) => `${formatMonthDay(iso)}, ${formatTime(iso)}`;
 
-const matches = (c: Complaint, query: string) => {
-  const q = normalizeTrackingId(query);
-  return !q || c.trackingId.includes(q) || c.title.toUpperCase().includes(query.trim().toUpperCase());
-};
+const ErrorBanner = ({ message }: { message: string | null }) =>
+  message ? <p className="alert alert-error" role="alert">{message}</p> : null;
 
-/** Rows of the department's own queue. Student identity is never part of a complaint row (pseudonymous). */
+/* ------------------------------ row actions + modals ------------------------------ */
+
 function useQueueActions() {
-  const { updateDepartmentStatus, returnToAdmin } = useDemoStore();
+  const { refresh } = useUrlFilters();
   const toast = useToast();
-  const [updating, setUpdating] = useState<string | null>(null);
-  // A status change waits here until the department head confirms it; nothing changes before that.
-  const [pending, setPending] = useState<{ c: Complaint; status: DepartmentStatus } | null>(null);
-  const [returning, setReturning] = useState<Complaint | null>(null);
-  const modals = useComplaintModals();
+  const [updating, setUpdating] = useState<Row | null>(null);
+  const [pending, setPending] = useState<{ c: Row; status: DepartmentStatus } | null>(null);
+  const [returning, setReturning] = useState<Row | null>(null);
+  const modals = useDepartmentModals();
 
-  const confirmStatus = () => {
+  const confirmStatus = async () => {
     if (!pending) return;
     const { c, status } = pending;
     setPending(null);
-    if (updateDepartmentStatus(c.trackingId, status)) {
-      toast(`${c.trackingId} marked ${status === "In Progress" ? "In progress" : status}. The student is notified by email (simulated).`, "success");
-    } else {
-      toast(`${c.trackingId} can't move to ${status === "In Progress" ? "In progress" : status} from ${c.status}.`, "error");
-    }
+    const res = await updateComplaintStatus(c.id, status === "In Progress" ? "in_progress" : "resolved");
+    toast(res.message, res.success ? "success" : "error");
+    if (res.success) refresh();
   };
 
-  const confirmReturn = (reason: string) => {
+  const confirmReturn = async (reason: string) => {
     if (!returning) return;
-    if (returnToAdmin(returning.trackingId, returning.department ?? "", reason)) {
-      toast(`${returning.trackingId} returned to Admin for reassignment.`, "success");
+    const res = await returnComplaint(returning.id, reason);
+    toast(res.message, res.success ? "success" : "error");
+    if (res.success) {
       setReturning(null);
-    } else {
-      toast(`${returning.trackingId} could not be returned. Refresh the queue and try again.`, "error");
+      refresh();
     }
   };
 
   return {
     modals,
-    setStatus: (c: Complaint, status: DepartmentStatus) => setPending({ c, status }),
-    openUpdate: (id: string) => setUpdating(id),
-    openReturn: (complaint: Complaint) => setReturning(complaint),
+    setStatus: (c: Row, status: DepartmentStatus) => setPending({ c, status }),
+    openUpdate: (c: Row) => setUpdating(c),
+    openReturn: (c: Row) => setReturning(c),
     updateModal: (
       <>
-        {updating ? <AddUpdateModal key={updating} id={updating} onClose={() => setUpdating(null)} /> : null}
+        {updating ? <AddUpdateModal key={updating.trackingId} row={updating} onClose={() => setUpdating(null)} /> : null}
         {pending ? <ConfirmStatusModal key={pending.c.trackingId} c={pending.c} status={pending.status} onCancel={() => setPending(null)} onConfirm={confirmStatus} /> : null}
         {returning ? <ReturnToAdminModal key={returning.trackingId} complaint={returning} onClose={() => setReturning(null)} onConfirm={confirmReturn} /> : null}
       </>
@@ -71,7 +69,6 @@ function useQueueActions() {
   };
 }
 
-/** One row's status control and the actions menu. */
 function RowActions({
   c,
   onStatus,
@@ -79,11 +76,11 @@ function RowActions({
   onView,
   onReturn,
 }: {
-  c: Complaint;
-  onStatus: (c: Complaint, s: DepartmentStatus) => void;
-  onAdd: (id: string) => void;
+  c: Row;
+  onStatus: (c: Row, s: DepartmentStatus) => void;
+  onAdd: (c: Row) => void;
   onView: (id: string) => void;
-  onReturn: (c: Complaint) => void;
+  onReturn: (c: Row) => void;
 }) {
   const [menuOpen, setMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
@@ -91,7 +88,7 @@ function RowActions({
   const next = nextDepartmentStatus(c.status);
   const locked = c.status === "Resolved" || !next;
   const menuId = `department-actions-${c.trackingId.toLowerCase()}`;
-
+  const canReturn = c.status === "Assigned";
   useEffect(() => {
     if (!menuOpen) return;
     const onKeyDown = (event: KeyboardEvent) => {
@@ -177,7 +174,7 @@ function RowActions({
               onClick={() => {
                 if (locked) return;
                 setMenuOpen(false);
-                onAdd(c.trackingId);
+                onAdd(c);
               }}
             >
               <span>Add update</span>
@@ -187,16 +184,16 @@ function RowActions({
             <button
               type="button"
               role="menuitem"
-              aria-disabled={locked}
-              className={`${d.menuReturn} ${locked ? d.menuItemDisabled : ""}`}
+              aria-disabled={!canReturn}
+              className={`${d.menuReturn} ${!canReturn ? d.menuItemDisabled : ""}`}
               onClick={() => {
-                if (locked) return;
+                if (!canReturn) return;
                 setMenuOpen(false);
                 onReturn(c);
               }}
             >
               <span><Icon name="undo" size={15} strokeWidth={2} /> Return to Admin</span>
-              {locked ? <small>Resolved — locked</small> : null}
+              {!canReturn ? <small>{c.status === "Resolved" ? "Resolved — locked" : "In progress — can't be returned"}</small> : null}
             </button>
           </div>
         ) : null}
@@ -205,17 +202,7 @@ function RowActions({
   );
 }
 
-function Table({
-  caption,
-  rows,
-  actions,
-  mode = "queue",
-}: {
-  caption: string;
-  rows: Complaint[];
-  actions: ReturnType<typeof useQueueActions>;
-  mode?: "queue" | "attention";
-}) {
+function Table({ caption, rows, actions, mode = "queue" }: { caption: string; rows: Row[]; actions: ReturnType<typeof useQueueActions>; mode?: "queue" | "attention" }) {
   return (
     <table className={s.table}>
       <caption className="visually-hidden">{caption}</caption>
@@ -224,100 +211,56 @@ function Table({
           <th scope="col" data-col="date">Date</th>
           <th scope="col" data-col="id">Tracking ID</th>
           <th scope="col" data-col="title">Title</th>
-          {mode === "queue" ? (
-            <th scope="col" data-col="date">
-              Assigned
-            </th>
-          ) : null}
+          {mode === "queue" ? <th scope="col" data-col="date">Assigned</th> : null}
           <th scope="col" data-col="priority">Priority</th>
           <th scope="col" data-col="status">Status</th>
-          <th scope="col" data-col={mode === "attention" ? "attention" : "sla"}>
-            {mode === "attention" ? "Needs attention" : "SLA"}
-          </th>
-          <th scope="col" data-col="actions-dept">
-            <span className="visually-hidden">Update status and add update</span>
-          </th>
+          <th scope="col" data-col={mode === "attention" ? "attention" : "sla"}>{mode === "attention" ? "Needs attention" : "SLA"}</th>
+          <th scope="col" data-col="actions-dept"><span className="visually-hidden">Update status and add update</span></th>
         </tr>
       </thead>
       <tbody>
-        {rows.map((c) => {
-          const sla = slaInfo(c);
-          const attention = mode === "attention" ? attentionInfo(c) : null;
-          // Before work starts the clock that matters is "acknowledge within": show it (and flag it once missed).
-          const unack = c.status === "Assigned" ? attentionInfo(c) : null;
-          const slaCell = unack?.reason === "unacknowledged" ? { label: unack.label, tone: unack.days > 0 ? "danger" : "neutral" } : sla;
-          const slaTone = c.status === "Resolved" ? "neutral" : slaCell.tone;
-          const attentionOverdue = attention?.reason === "overdue" || (attention?.reason === "unacknowledged" && attention.days > 0);
-          return (
-            <tr key={c.trackingId} className={d.departmentRow}>
-              <td data-label="Date" className={s.date}>
-                {formatShortDate(c.submittedAt)}
-              </td>
-              <td data-label="Tracking ID">
-                <button type="button" className={s.idLink} onClick={() => actions.modals.openDetails(c.trackingId)}>
-                  {c.trackingId}
-                </button>
-              </td>
-              <td data-label="Title" className={`${s.strong} ${d.titleCell}`}>
-                {c.title}
-              </td>
-              {mode === "queue" ? (
-                <td data-label="Assigned" className={s.date}>
-                  {c.assignedAt ? formatShortDate(c.assignedAt) : "—"}
-                </td>
-              ) : null}
-              <td data-label="Priority">
-                <PriorityDot priority={c.priority} />
-              </td>
-              <td data-label="Status">
-                <StatusPill status={c.status} />
-              </td>
-              {mode === "attention" ? (
-                <td data-label="Needs attention" className={`${d.reason} ${attentionOverdue ? d.reasonLate : d.reasonWait}`}>
-                  {attention?.reason === "overdue" ? attention.label : `Unacknowledged · ${attention?.label ?? ""}`}
-                </td>
-              ) : (
-                <td data-label="SLA" className={`${d.slaCell} ${slaTone === "danger" ? d.slaOverdue : s.muted}`}>
-                  {slaCell.label}
-                </td>
-              )}
-              <td data-label="Actions">
-                <RowActions c={c} onStatus={actions.setStatus} onAdd={actions.openUpdate} onView={actions.modals.openUpdates} onReturn={actions.openReturn} />
-              </td>
-            </tr>
-          );
-        })}
+        {rows.map((c) => (
+          <tr key={c.trackingId} className={d.departmentRow}>
+            <td data-label="Date" className={s.date}>{formatShortDate(c.submittedAt)}</td>
+            <td data-label="Tracking ID">
+              <button type="button" className={s.idLink} onClick={() => actions.modals.openDetails(c.trackingId)}>{c.trackingId}</button>
+            </td>
+            <td data-label="Title" className={`${s.strong} ${d.titleCell}`}>{c.title}</td>
+            {mode === "queue" ? <td data-label="Assigned" className={s.date}>{c.assignedAt ? formatShortDate(c.assignedAt) : "—"}</td> : null}
+            <td data-label="Priority"><PriorityDot priority={c.priority} /></td>
+            <td data-label="Status"><StatusPill status={c.status} /></td>
+            {mode === "attention" ? (
+              <td data-label="Needs attention" className={`${d.reason} ${c.attention?.late ? d.reasonLate : d.reasonWait}`}>{c.attention?.label ?? "—"}</td>
+            ) : (
+              <td data-label="SLA" className={`${d.slaCell} ${c.status !== "Resolved" && c.sla.tone === "danger" ? d.slaOverdue : s.muted}`}>{c.sla.label}</td>
+            )}
+            <td data-label="Actions">
+              <RowActions c={c} onStatus={actions.setStatus} onAdd={actions.openUpdate} onView={actions.modals.openUpdates} onReturn={actions.openReturn} />
+            </td>
+          </tr>
+        ))}
       </tbody>
     </table>
   );
 }
 
-/* ------------------------------------------------------------------------------------------ */
+/* ------------------------------ dashboard ------------------------------ */
 
-/** Department Dashboard (Figma: Department Portal / Dashboard). */
-export function DepartmentDashboard() {
-  const { departmentComplaints: all, session } = useDemoStore();
+export function DepartmentDashboard({
+  counts, rows: raw, total, loadError, filters,
+}: {
+  counts: Record<string, number> | null;
+  rows: DeptRaw[];
+  total: number;
+  loadError: string | null;
+  filters: { q: string; status: string; page: number };
+}) {
+  console.log(raw[0]);
+  const { update, pending: loading } = useUrlFilters();
   const actions = useQueueActions();
-  const [query, setQuery] = useState("");
-  const [status, setStatus] = useState("");
-  const [page, setPage] = useState(1);
-
-  const counts = useMemo(
-    () => ({
-      total: all.length,
-      assigned: all.filter((c) => c.status === "Assigned").length,
-      inProgress: all.filter((c) => c.status === "In Progress").length,
-      resolved: all.filter((c) => c.status === "Resolved").length,
-    }),
-    [all],
-  );
-
-  const rows = all
-    .filter((c) => (!status || c.status === status) && matches(c, query))
-    .sort((a, b) => b.submittedAt.localeCompare(a.submittedAt));
-  const pageCount = Math.max(1, Math.ceil(rows.length / PAGE_SIZE));
-  const current = Math.min(page, pageCount);
-  const visible = rows.slice((current - 1) * PAGE_SIZE, current * PAGE_SIZE);
+  const [query, setQuery] = useDebouncedSearch(filters.q, (v) => update({ q: v.trim(), page: null }));
+  const rows = raw.map(toRow);
+  const hasFilters = Boolean(filters.q || filters.status);
 
   return (
     <div className="container">
@@ -326,54 +269,34 @@ export function DepartmentDashboard() {
         <p className={s.subtitle}>Complaints assigned to your department. Student identities are never shown.</p>
       </div>
 
-      <StatCards counts={counts} base="/department" />
+      <StatCards
+        counts={{ total: counts?.total ?? 0, assigned: counts?.assigned ?? 0, inProgress: counts?.in_progress ?? 0, resolved: counts?.resolved ?? 0 }}
+        base="/department"
+      />
+      <ErrorBanner message={loadError} />
 
-      <section className={s.panel} aria-label={`${session?.department ?? "Department"} complaint queue`}>
+      <section className={s.panel} aria-label="Department complaint queue" aria-busy={loading} style={{ opacity: loading ? 0.6 : 1 }}>
         <div className={s.toolbar}>
-          <SearchBox
-            value={query}
-            onChange={(v) => {
-              setQuery(v);
-              setPage(1);
-            }}
-          />
-          <select
-            aria-label="Filter by status"
-            className={`select ${s.filter}`}
-            value={status}
-            onChange={(e) => {
-              setStatus(e.target.value);
-              setPage(1);
-            }}
-          >
+          <SearchBox value={query} onChange={setQuery} />
+          <select aria-label="Filter by status" className={`select ${s.filter}`} value={filters.status} onChange={(e) => update({ status: e.target.value, page: null })}>
             <option value="">All statuses</option>
-            <option value="Assigned">Assigned</option>
-            <option value="In Progress">In progress</option>
-            <option value="Resolved">Resolved</option>
+            <option value="assigned">Assigned</option>
+            <option value="in_progress">In progress</option>
+            <option value="resolved">Resolved</option>
           </select>
         </div>
         <div className={s.tableWrap}>
-          <Table caption="Complaints assigned to your department" rows={visible} actions={actions} />
-          {rows.length === 0 ? (
-            all.length === 0 ? (
-              <EmptyState message="No complaints are assigned to your department yet." hint="New complaints appear here as soon as an admin assigns them to you." />
+          <Table caption="Complaints assigned to your department" rows={rows} actions={actions} />
+          {rows.length === 0 && !loadError ? (
+            hasFilters ? (
+              <EmptyState message="No complaints match these filters." action={{ label: "Clear filters", onClick: () => { setQuery(""); update({ q: null, status: null, page: null }); } }} />
             ) : (
-              <EmptyState
-                message="No complaints match these filters."
-                action={{
-                  label: "Clear filters",
-                  onClick: () => {
-                    setQuery("");
-                    setStatus("");
-                    setPage(1);
-                  },
-                }}
-              />
+              <EmptyState message="No complaints are assigned to your department yet." hint="New complaints appear here as soon as an admin assigns them to you." />
             )
           ) : null}
         </div>
-        <Pager page={current} pageSize={PAGE_SIZE} total={rows.length} onPage={setPage} />
-        <p className={d.footnote}>Status changes follow the review process. Resolved complaints are locked; other complaints may be returned to Admin for reassignment.</p>
+        <Pager page={filters.page} pageSize={PAGE_SIZE} total={total} onPage={(p) => update({ page: p > 1 ? p : null })} />
+        <p className={d.footnote}>Status changes follow the review process. Resolved and In progress complaints are locked; other complaints may be returned to Admin for reassignment.</p>
       </section>
       {actions.modals.modals}
       {actions.updateModal}
@@ -381,31 +304,30 @@ export function DepartmentDashboard() {
   );
 }
 
-export type DepartmentListKind = "total" | "assigned" | "progress" | "resolved";
+/* ------------------------------ list pages ------------------------------ */
 
-const LISTS: Record<DepartmentListKind, { title: string; subtitle: string; pill: string; filter: (c: Complaint) => boolean }> = {
-  total: { title: "Total complaints", subtitle: "Every complaint assigned to your department.", pill: s.pillTotal, filter: () => true },
-  assigned: { title: "Assigned", subtitle: "Waiting for your department to start work.", pill: s.pillAssigned, filter: (c) => c.status === "Assigned" },
-  progress: { title: "In progress", subtitle: "Complaints your department is currently working on.", pill: s.pillProgress, filter: (c) => c.status === "In Progress" },
-  resolved: { title: "Resolved", subtitle: "Complaints your department has resolved.", pill: s.pillResolved, filter: (c) => c.status === "Resolved" },
+const LISTS: Record<DepartmentListKind, { title: string; subtitle: string; pill: string }> = {
+  total: { title: "Total complaints", subtitle: "Every complaint assigned to your department.", pill: s.pillTotal },
+  assigned: { title: "Assigned", subtitle: "Waiting for your department to start work.", pill: s.pillAssigned },
+  progress: { title: "In progress", subtitle: "Complaints your department is currently working on.", pill: s.pillProgress },
+  resolved: { title: "Resolved", subtitle: "Complaints your department has resolved.", pill: s.pillResolved },
 };
 
-/** Total complaints / Assigned / In progress / Resolved pages (reached from the menu or the stat boxes). */
-export function DepartmentList({ kind }: { kind: DepartmentListKind }) {
-  const { departmentComplaints } = useDemoStore();
+export function DepartmentList({
+  kind, rows: raw, total, statusTotal, loadError, filters,
+}: {
+  kind: DepartmentListKind;
+  rows: DeptRaw[];
+  total: number;
+  statusTotal: number;
+  loadError: string | null;
+  filters: { q: string; sort: "newest" | "oldest"; page: number };
+}) {
+  const { update, pending: loading } = useUrlFilters();
   const actions = useQueueActions();
   const cfg = LISTS[kind];
-  const [query, setQuery] = useState("");
-  const [sort, setSort] = useState<"newest" | "oldest">("newest");
-  const [page, setPage] = useState(1);
-
-  const all = departmentComplaints.filter(cfg.filter);
-  const rows = all
-    .filter((c) => matches(c, query))
-    .sort((a, b) => (sort === "newest" ? b.submittedAt.localeCompare(a.submittedAt) : a.submittedAt.localeCompare(b.submittedAt)));
-  const pageCount = Math.max(1, Math.ceil(rows.length / PAGE_SIZE));
-  const current = Math.min(page, pageCount);
-  const visible = rows.slice((current - 1) * PAGE_SIZE, current * PAGE_SIZE);
+  const [query, setQuery] = useDebouncedSearch(filters.q, (v) => update({ q: v.trim(), page: null }));
+  const rows = raw.map(toRow);
 
   return (
     <div className="container">
@@ -413,46 +335,30 @@ export function DepartmentList({ kind }: { kind: DepartmentListKind }) {
         <BackToDashboard href="/department" />
         <div className={s.listTitleRow}>
           <h1 className={s.listTitle}>{cfg.title}</h1>
-          <span className={`${s.countPill} ${cfg.pill}`} aria-label={`${all.length} complaints`}>
-            {all.length}
-          </span>
+          <span className={`${s.countPill} ${cfg.pill}`} aria-label={`${statusTotal} complaints`}>{statusTotal}</span>
         </div>
         <p className={s.subtitle}>{cfg.subtitle}</p>
       </div>
-      <section className={s.panel} aria-label={cfg.title}>
+      <ErrorBanner message={loadError} />
+      <section className={s.panel} aria-label={cfg.title} aria-busy={loading} style={{ opacity: loading ? 0.6 : 1 }}>
         <div className={s.toolbar}>
-          <SearchBox
-            value={query}
-            onChange={(v) => {
-              setQuery(v);
-              setPage(1);
-            }}
-          />
-          <select aria-label="Sort" className={`select ${s.filter}`} value={sort} onChange={(e) => setSort(e.target.value as "newest" | "oldest")}>
+          <SearchBox value={query} onChange={setQuery} />
+          <select aria-label="Sort" className={`select ${s.filter}`} value={filters.sort} onChange={(e) => update({ sort: e.target.value === "oldest" ? "oldest" : null, page: null })}>
             <option value="newest">Newest first</option>
             <option value="oldest">Oldest first</option>
           </select>
         </div>
         <div className={s.tableWrap}>
-          <Table caption={cfg.title} rows={visible} actions={actions} />
-          {rows.length === 0 ? (
-            all.length === 0 ? (
-              <EmptyState message="No complaints in this list yet." action={{ label: "Back to dashboard", href: "/department" }} />
+          <Table caption={cfg.title} rows={rows} actions={actions} />
+          {rows.length === 0 && !loadError ? (
+            filters.q ? (
+              <EmptyState message="No complaints match your search." action={{ label: "Clear search", onClick: () => { setQuery(""); update({ q: null, page: null }); } }} />
             ) : (
-              <EmptyState
-                message="No complaints match your search."
-                action={{
-                  label: "Clear search",
-                  onClick: () => {
-                    setQuery("");
-                    setPage(1);
-                  },
-                }}
-              />
+              <EmptyState message="No complaints in this list yet." action={{ label: "Back to dashboard", href: "/department" }} />
             )
           ) : null}
         </div>
-        <Pager page={current} pageSize={PAGE_SIZE} total={rows.length} onPage={setPage} />
+        <Pager page={filters.page} pageSize={PAGE_SIZE} total={total} onPage={(p) => update({ page: p > 1 ? p : null })} />
       </section>
       {actions.modals.modals}
       {actions.updateModal}
@@ -460,23 +366,24 @@ export function DepartmentList({ kind }: { kind: DepartmentListKind }) {
   );
 }
 
-/** Needs Attention: overdue and unacknowledged complaints, most overdue first, with a priority filter. */
-export function NeedsAttention() {
-  const { departmentComplaints } = useDemoStore();
-  const actions = useQueueActions();
-  const [query, setQuery] = useState("");
-  const [priority, setPriority] = useState("");
-  const [page, setPage] = useState(1);
+/* ------------------------------ needs attention ------------------------------ */
 
-  const flagged = departmentComplaints.map((c) => ({ c, a: attentionInfo(c) })).filter((x): x is { c: Complaint; a: NonNullable<ReturnType<typeof attentionInfo>> } => !!x.a);
-  const rows = flagged
-    .filter((x) => (!priority || x.c.priority === priority) && matches(x.c, query))
-    .sort((a, b) => a.a.rank - b.a.rank || (a.c.assignedAt ?? "").localeCompare(b.c.assignedAt ?? ""))
-    .map((x) => x.c);
-  const overdueCount = flagged.filter((x) => x.a.reason === "overdue").length;
-  const pageCount = Math.max(1, Math.ceil(rows.length / PAGE_SIZE));
-  const current = Math.min(page, pageCount);
-  const visible = rows.slice((current - 1) * PAGE_SIZE, current * PAGE_SIZE);
+export function NeedsAttention({
+  rows: raw, total, overdueCount, waitingCount, badge, priorities, loadError, filters,
+}: {
+  rows: DeptRaw[];
+  total: number;
+  overdueCount: number;
+  waitingCount: number;
+  badge: number;
+  priorities: { id: number; name: string }[];
+  loadError: string | null;
+  filters: { q: string; priority: string; page: number };
+}) {
+  const { update, pending: loading } = useUrlFilters();
+  const actions = useQueueActions();
+  const [query, setQuery] = useDebouncedSearch(filters.q, (v) => update({ q: v.trim(), page: null }));
+  const rows = raw.map(toRow);
 
   return (
     <div className="container">
@@ -484,65 +391,34 @@ export function NeedsAttention() {
         <BackToDashboard href="/department" />
         <div className={s.listTitleRow}>
           <h1 className={s.listTitle}>Needs attention</h1>
-          <span className={`${s.countPill} ${s.pillTotal}`} aria-label={`${flagged.length} complaints need attention`}>
-            {flagged.length}
-          </span>
+          <span className={`${s.countPill} ${s.pillTotal}`} aria-label={`${badge} complaints need attention`}>{badge}</span>
         </div>
         <p className={s.subtitle}>
-          {overdueCount} overdue · {flagged.length - overdueCount} waiting to be acknowledged. Most overdue first; the SLA clock started when each complaint was assigned.
+          {overdueCount} overdue · {waitingCount} waiting to be acknowledged. Most overdue first; the SLA clock started when each complaint was assigned.
         </p>
       </div>
-      <section className={s.panel} aria-label="Complaints that need attention">
+      <ErrorBanner message={loadError} />
+      <section className={s.panel} aria-label="Complaints that need attention" aria-busy={loading} style={{ opacity: loading ? 0.6 : 1 }}>
         <div className={s.toolbar}>
-          <SearchBox
-            value={query}
-            onChange={(v) => {
-              setQuery(v);
-              setPage(1);
-            }}
-          />
-          <select
-            aria-label="Filter by priority"
-            className={`select ${s.filter}`}
-            value={priority}
-            onChange={(e) => {
-              setPriority(e.target.value);
-              setPage(1);
-            }}
-          >
+          <SearchBox value={query} onChange={setQuery} />
+          <select aria-label="Filter by priority" className={`select ${s.filter}`} value={filters.priority} onChange={(e) => update({ priority: e.target.value, page: null })}>
             <option value="">All priority levels</option>
-            {PRIORITIES.map((p) => (
-              <option key={p} value={p}>
-                {p}
-              </option>
+            {priorities.map((p) => (
+              <option key={p.id} value={String(p.id)}>{p.name}</option>
             ))}
           </select>
         </div>
         <div className={s.tableWrap}>
-          <Table caption="Complaints that need attention" rows={visible} actions={actions} mode="attention" />
-          {rows.length === 0 ? (
-            flagged.length === 0 ? (
-              <EmptyState
-                message="Nothing needs attention right now. Well done!"
-                hint="Overdue complaints and ones still waiting to be acknowledged show up here."
-                action={{ label: "View all complaints", href: "/department/complaints" }}
-              />
+          <Table caption="Complaints that need attention" rows={rows} actions={actions} mode="attention" />
+          {rows.length === 0 && !loadError ? (
+            badge === 0 ? (
+              <EmptyState message="Nothing needs attention right now. Well done!" hint="Overdue complaints and ones still waiting to be acknowledged show up here." action={{ label: "View all complaints", href: "/department/complaints" }} />
             ) : (
-              <EmptyState
-                message="No complaints match these filters."
-                action={{
-                  label: "Clear filters",
-                  onClick: () => {
-                    setQuery("");
-                    setPriority("");
-                    setPage(1);
-                  },
-                }}
-              />
+              <EmptyState message="No complaints match these filters." action={{ label: "Clear filters", onClick: () => { setQuery(""); update({ q: null, priority: null, page: null }); } }} />
             )
           ) : null}
         </div>
-        <Pager page={current} pageSize={PAGE_SIZE} total={rows.length} onPage={setPage} />
+        <Pager page={filters.page} pageSize={PAGE_SIZE} total={total} onPage={(p) => update({ page: p > 1 ? p : null })} />
       </section>
       {actions.modals.modals}
       {actions.updateModal}
@@ -550,23 +426,9 @@ export function NeedsAttention() {
   );
 }
 
-/* ------------------------------------------------------------------------------------------ */
+/* ------------------------------ modals ------------------------------ */
 
-const when = (iso: string) => `${formatMonthDay(iso)}, ${formatTime(iso)}`;
-
-/** "Add Update": writes the message the student reads through View Update (never public). */
-/** Confirmation before a department head changes a complaint's status (In Progress or Resolved). */
-function ConfirmStatusModal({
-  c,
-  status,
-  onCancel,
-  onConfirm,
-}: {
-  c: Complaint;
-  status: DepartmentStatus;
-  onCancel: () => void;
-  onConfirm: () => void;
-}) {
+function ConfirmStatusModal({ c, status, onCancel, onConfirm }: { c: Row; status: DepartmentStatus; onCancel: () => void; onConfirm: () => void }) {
   const [busy, setBusy] = useState(false);
   const label = status === "In Progress" ? "In progress" : "Resolved";
   return (
@@ -580,19 +442,8 @@ function ConfirmStatusModal({
       subtitle={`${c.trackingId} · ${c.title}`}
       footer={
         <div className={m.footer}>
-          <button type="button" className={`btn btn-soft ${m.btn}`} onClick={onCancel} disabled={busy}>
-            Cancel
-          </button>
-          <button
-            type="button"
-            className={`btn btn-primary ${m.btn}`}
-            disabled={busy}
-            onClick={() => {
-              if (busy) return;
-              setBusy(true);
-              onConfirm();
-            }}
-          >
+          <button type="button" className={`btn btn-soft ${m.btn}`} onClick={onCancel} disabled={busy}>Cancel</button>
+          <button type="button" className={`btn btn-primary ${m.btn}`} disabled={busy} onClick={() => { if (busy) return; setBusy(true); onConfirm(); }}>
             Mark {label}
           </button>
         </div>
@@ -607,17 +458,29 @@ function ConfirmStatusModal({
   );
 }
 
-function AddUpdateModal({ id, onClose }: { id: string; onClose: () => void }) {
-  const { departmentComplaints, addDepartmentUpdate } = useDemoStore();
+type PrevUpdate = { id: string; created_at: string; message: string };
+
+function AddUpdateModal({ row, onClose }: { row: Row; onClose: () => void }) {
+  const { refresh } = useUrlFilters();
   const toast = useToast();
-  const c = departmentComplaints.find((x) => x.trackingId === id);
+  const complaintId = row.id;
+  const [previous, setPrevious] = useState<PrevUpdate[]>([]);
   const [message, setMessage] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [confirming, setConfirming] = useState(false);
   const [posting, setPosting] = useState(false);
-  if (!c || c.status === "Resolved") return null;
 
-  // Step 1: validate, then ask for confirmation. Nothing is posted yet.
+  useEffect(() => {
+    let off = false;
+    (async () => {
+      const r = await getComplaintUpdates(row.id);
+      if (!off && r.success && "updates" in r && r.updates) setPrevious(r.updates as PrevUpdate[]);
+    })();
+    return () => { off = true; };
+  }, [row.id]);
+
+  if (row.status === "Resolved") return null;
+
   const submit = (e: FormEvent) => {
     e.preventDefault();
     const text = message.trim();
@@ -628,17 +491,18 @@ function AddUpdateModal({ id, onClose }: { id: string; onClose: () => void }) {
     setConfirming(true);
   };
 
-  // Step 2: post once. The guard stops a double click from posting twice.
-  const post = () => {
-    if (posting) return;
+  const post = async () => {
+    if (posting || !complaintId) return;
     setPosting(true);
-    if (addDepartmentUpdate(c.trackingId, message.trim())) {
-      toast(`Update added to ${c.trackingId}. The student is notified by email (simulated).`, "success");
+    const res = await addComplaintUpdate(complaintId, message.trim());
+    if (res.success) {
+      toast(`Update added to ${row.trackingId}. The student is notified by email.`, "success");
+      refresh();
       onClose();
     } else {
       setPosting(false);
       setConfirming(false);
-      toast(`Couldn't post the update to ${c.trackingId}.`, "error");
+      toast(res.message, "error");
     }
   };
 
@@ -651,15 +515,11 @@ function AddUpdateModal({ id, onClose }: { id: string; onClose: () => void }) {
         size="sm"
         variant="dialog"
         title="Post this update?"
-        subtitle={`${c.trackingId} · ${c.title}`}
+        subtitle={`${row.trackingId} · ${row.title}`}
         footer={
           <div className={m.footer}>
-            <button type="button" className={`btn btn-soft ${m.btn}`} onClick={() => setConfirming(false)} disabled={posting}>
-              Back to edit
-            </button>
-            <button type="button" className={`btn btn-primary ${m.btn}`} onClick={post} disabled={posting}>
-              Post update
-            </button>
+            <button type="button" className={`btn btn-soft ${m.btn}`} onClick={() => setConfirming(false)} disabled={posting}>Back to edit</button>
+            <button type="button" className={`btn btn-primary ${m.btn}`} onClick={post} disabled={posting || !complaintId}>Post update</button>
           </div>
         }
       >
@@ -669,33 +529,23 @@ function AddUpdateModal({ id, onClose }: { id: string; onClose: () => void }) {
     );
   }
 
-  const previous = [...c.updates].sort((a, b) => b.at.localeCompare(a.at));
-
   return (
-    <Modal open onClose={onClose} align="left" size="md" variant="dialog" title="Add update" subtitle={`${c.trackingId} · ${c.title}`}>
+    <Modal open onClose={onClose} align="left" size="md" variant="dialog" title="Add update" subtitle={`${row.trackingId} · ${row.title}`}>
       <form onSubmit={submit} noValidate className={m.form}>
         <div className={`field ${error ? "has-error" : ""}`}>
-          <label htmlFor="dept-update" className={m.label}>
-            Update message <span className="req">*</span>
-          </label>
+          <label htmlFor="dept-update" className={m.label}>Update message <span className="req">*</span></label>
           <textarea
             id="dept-update"
             className={`textarea ${m.textarea}`}
             maxLength={UPDATE_MAX}
             placeholder="e.g. Our maintenance team inspected the area. Repair is scheduled for this week."
             value={message}
-            onChange={(e) => {
-              setMessage(e.target.value);
-              setError(null);
-            }}
+            onChange={(e) => { setMessage(e.target.value); setError(null); }}
           />
           {error ? <span className="field-error">{error}</span> : null}
-          <span className={d.counter}>
-            {message.length}/{UPDATE_MAX}
-          </span>
+          <span className={d.counter}>{message.length}/{UPDATE_MAX}</span>
           <span className={m.help}>
-            The student who submitted this complaint reads it through <strong>View Update</strong>, and administrators see it in the Master Tracking Queue. It is
-            never shown on the public dashboard. Do not include personal details. <em>(Email notification is simulated in this demo; emails contain no links.)</em>
+            The student who submitted this complaint reads it through <strong>View Update</strong>, and administrators see it in the Master Tracking Queue. It is never shown on the public dashboard. Do not include personal details.
           </span>
         </div>
 
@@ -704,8 +554,8 @@ function AddUpdateModal({ id, onClose }: { id: string; onClose: () => void }) {
             <p className={d.prevTitle}>Previous updates</p>
             <ul className={d.prevList}>
               {previous.map((u) => (
-                <li key={u.at} className={d.prevItem}>
-                  <span className={d.prevTime}>{when(u.at)}</span>
+                <li key={u.id} className={d.prevItem}>
+                  <span className={d.prevTime}>{when(u.created_at)}</span>
                   {u.message}
                 </li>
               ))}
@@ -714,12 +564,8 @@ function AddUpdateModal({ id, onClose }: { id: string; onClose: () => void }) {
         ) : null}
 
         <div className={m.footer}>
-          <button type="button" className={`btn btn-soft ${m.btn}`} onClick={onClose}>
-            Cancel
-          </button>
-          <button type="submit" className={`btn btn-primary ${m.btn}`}>
-            Review update
-          </button>
+          <button type="button" className={`btn btn-soft ${m.btn}`} onClick={onClose}>Cancel</button>
+          <button type="submit" className={`btn btn-primary ${m.btn}`} disabled={!complaintId}>Review update</button>
         </div>
       </form>
     </Modal>

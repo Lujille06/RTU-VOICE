@@ -97,7 +97,7 @@ export async function addComplaintUpdate(
   const trimmed = message?.trim() ?? "";
   if (!UUID_RE.test(complaintId)) return { success: false, message: "Invalid request." };
   if (!trimmed) return { success: false, message: "Please enter an update message." };
-  if (trimmed.length > 2000) {
+  if (trimmed.length > 500) {
     return { success: false, message: "Update message is too long (max 2000 characters)." };
   }
 
@@ -152,8 +152,8 @@ export async function returnComplaint(
   if (!me || me.role !== "department") return { success: false, message: "Not allowed." };
 
   const trimmed = reason?.trim() ?? "";
-  if (!UUID_RE.test(complaintId)) return { success: false, message: "Invalid request." };
-  if (!trimmed) return { success: false, message: "Please provide a reason for rejecting." };
+  // if (!UUID_RE.test(complaintId)) return { success: false, message: "Invalid request." };
+  if (!trimmed) return { success: false, message: "Please provide a reason for returning." };
   if (trimmed.length > MAX_REASON) {
     return { success: false, message: `Reason is too long (max ${MAX_REASON} characters).` };
   }

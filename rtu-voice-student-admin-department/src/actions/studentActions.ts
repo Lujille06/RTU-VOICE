@@ -8,8 +8,6 @@ import type {
     SubmitComplaintState,
     TrackComplaintState,
     TrackedComplaint,
-    EvidenceUrlState,
-    EvidenceFileRow,
     HistoryState,
     HistoryRow,
     PublicRow,
@@ -115,7 +113,7 @@ export async function getHistory(): Promise<HistoryState> {
         return { success: false, message: "Couldn't load your history. Please try again." };
     }
     if (!data) {
-        return { success: false, message: "No complaint submitted yet." };
+        return { success: false, message: "No complaint submitted yet.", historyData: (data ?? []) as HistoryRow[] };
     }
 
     return { success: true, message: "", historyData: data as HistoryRow[] };
@@ -139,10 +137,10 @@ export async function getPublicComplaints(offset: number, status: string, catego
     
     const supabase = await createClient();
 
-    const { data: catData } = await supabase.from("categories").select("id, name");
-    const cats = (catData ?? []) as { id: number; name: string }[];
-    const catId = cats.find((c) => c.name === category)?.id ?? null;
-    const catNames = new Map<number, string>(cats.map((c): [number, string] => [c.id, c.name]));
+    const { data: catData } = await supabase.from("categories").select("id, category");
+    const cats = (catData ?? []) as { id: number; category: string }[];
+    const catId = cats.find((c) => c.category === category)?.id ?? null;
+    const catNames = new Map<number, string>(cats.map((c): [number, string] => [c.id, c.category]));
 
     const { data, error } = await supabase.rpc("get_public_complaints", {
         p_offset: offset,

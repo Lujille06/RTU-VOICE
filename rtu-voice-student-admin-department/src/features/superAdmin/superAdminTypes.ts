@@ -9,6 +9,7 @@ export type StaffRole = keyof typeof STAFF_ROLE_ID;
 export const EMAIL_DOMAIN = "@rtu.edu.ph";
 export const MAX_PERSON_NAME = 100;
 export const MAX_DEPARTMENT_NAME = 150;
+export const MAX_ACRONYM = 20;
 
 /* ---------------- paging ---------------- */
 

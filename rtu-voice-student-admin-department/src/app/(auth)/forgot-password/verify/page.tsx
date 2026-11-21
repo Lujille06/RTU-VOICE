@@ -2,23 +2,27 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { OtpVerifyCard } from "@/components/forms/OtpVerifyCard";
-import { useDemoStore } from "@/lib/demo-store";
+import { resendOtp, verifyResetOtp } from "@/actions/authActions";
+import { useEmailStore } from "@/features/auth/authStore";
 import styles from "../../auth.module.css";
 
 export default function ForgotPasswordVerifyPage() {
-  const { ready, resetEmail, markResetVerified } = useDemoStore();
   const router = useRouter();
+  const [email, setEmail] = useState<string | null>(null);
+  const [ready, setReady] = useState(false);
 
-  // Load the next step ahead of time so the switch after the code is quick.
   useEffect(() => {
+    const e = useEmailStore.getState();
+    setEmail(e.flowType === "password_reset" && e.email ? e.email : null);
+    setReady(true);
     router.prefetch("/forgot-password/reset");
   }, [router]);
 
   if (!ready) return <div className={styles.card} aria-busy="true" style={{ minHeight: 320 }} />;
 
-  if (!resetEmail) {
+  if (!email) {
     return (
       <div className={styles.card}>
         <h2 className={`${styles.cardTitle} ${styles.cardTitleNavy}`}>Verify Account</h2>
@@ -26,9 +30,7 @@ export default function ForgotPasswordVerifyPage() {
           Enter your university email first so we know where to send the code.
         </p>
         <div className={styles.form}>
-          <Link href="/forgot-password" className={styles.submit} style={{ textDecoration: "none" }}>
-            Go to Forgot Password
-          </Link>
+          <Link href="/forgot-password" className={styles.submit} style={{ textDecoration: "none" }}>Go to Forgot Password</Link>
         </div>
       </div>
     );
@@ -36,12 +38,14 @@ export default function ForgotPasswordVerifyPage() {
 
   return (
     <OtpVerifyCard
-      email={resetEmail}
+      email={email}
       purpose="reset"
-      onVerified={() => {
-        markResetVerified();
-        router.replace("/forgot-password/reset");
+      verify={async (fd: FormData) => {
+        const res = await verifyResetOtp(fd, email);
+        if (res.success) router.replace("/forgot-password/reset");
+        return res;
       }}
+      resend={() => resendOtp("password_reset", email, "")}
     />
   );
 }

@@ -1,7 +1,6 @@
 import Link from "next/link";
 import { Icon, type IconName } from "@/components/Icon";
 import { StatusBadge } from "@/components/StatusBadge";
-import { LANDING_PREVIEW } from "@/lib/demo-data";
 import type { PublicConcern } from "@/lib/types";
 import { Faq } from "./Faq";
 import { HowToSubmitSection } from "./HowToSubmitSection";
@@ -31,6 +30,12 @@ const AUDIENCES = [
   { title: "Other students and the public", text: "Never see who you are. The dashboard shows only a depersonalized summary." },
   { title: "The department", text: "Sees your concern and evidence, not your name." },
   { title: "Administrators", text: "Keep an internal link between your account and your concern, so they can follow up, investigate abuse, and respond to serious cases." },
+];
+
+const LANDING_PREVIEW: PublicConcern[] = [
+  { id: "l1", title: "Leaking ceiling in a Main Building classroom", summary: "", category: "Facilities & Infrastructure", status: "In Progress", date: "2026-03-12" },
+  { id: "l2", title: "Delay in releasing requested documents", summary: "", category: "Administrative", status: "Assigned", date: "2026-03-11" },
+  { id: "l3", title: "Broken ceiling fan in a Computer Lab", summary: "", category: "Facilities & Infrastructure", status: "Resolved", date: "2026-03-09" },
 ];
 
 /** One sample per public status, taken from the demo public dashboard data. */
