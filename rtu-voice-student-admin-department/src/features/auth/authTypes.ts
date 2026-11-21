@@ -41,4 +41,15 @@ export interface ButtonStepProps{
     nextStep: () => void;
 }
 
+export type LoginResult =
+    | { success: false; message: string }
+    | { success: true; message: ""; redirectTo: string };
 
+export type UpdateProfileType = {
+    success: boolean,
+    message: string,
+    errors?: {
+        firstName?: string,
+        lastName?: string
+    }
+}
