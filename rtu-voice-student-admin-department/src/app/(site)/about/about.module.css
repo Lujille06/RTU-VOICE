@@ -2,7 +2,7 @@
 .hero {
   background: var(--navy);
   color: var(--white);
-  padding: 72px var(--gutter) 70px 79px;
+  padding: 80px var(--gutter) 54px 64px;
 }
 .heroInner {
   position: relative;
@@ -11,26 +11,26 @@
 .eyebrow {
   font-family: var(--font-inter);
   font-weight: 700;
-  font-size: 16px;
+  font-size: 14px;
   color: var(--yellow);
 }
 .title {
-  margin-top: 30px;
+  margin-top: 24px;
   font-family: var(--font-bricolage);
   font-weight: 700;
-  font-size: 64px;
-  line-height: 0.88;
+  font-size: 52px;
+  line-height: 1;
 }
 .lead {
-  margin-top: 40px;
+  margin-top: 28px;
   max-width: 726px;
   font-family: var(--font-inter);
-  font-size: 20px;
-  line-height: 1;
+  font-size: 17px;
+  line-height: 1.55;
 }
 .chips {
   list-style: none;
-  margin: 36px 0 0;
+  margin: 28px 0 0;
   padding: 0;
   display: flex;
   flex-wrap: wrap;
@@ -40,19 +40,19 @@
   display: inline-flex;
   align-items: center;
   gap: 10px;
-  height: 34px;
-  padding: 0 22px;
+  height: 32px;
+  padding: 0 16px;
   border-radius: 999px;
   background: rgba(255, 255, 255, 0.14);
   font-family: var(--font-inter);
   font-weight: 600;
-  font-size: 16px;
+  font-size: 14px;
 }
 
 /* Why we built it */
 .why {
   background: var(--surface-grey);
-  padding: 72px var(--gutter) 100px;
+  padding: 56px var(--gutter) 72px;
 }
 .whyInner {
   max-width: 1275px;
@@ -61,36 +61,36 @@
 .whyTop {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
-  gap: 40px;
+  gap: 32px;
   align-items: start;
 }
 .whyTitle {
   font-family: var(--font-bricolage);
   font-weight: 600;
-  font-size: 32px;
+  font-size: 28px;
   color: var(--navy);
 }
 .whyText {
-  margin-top: 26px;
+  margin-top: 20px;
   max-width: 762px;
   font-family: var(--font-inter);
-  font-size: 20px;
-  line-height: 0.95;
+  font-size: 17px;
+  line-height: 1.55;
   color: var(--text-muted);
 }
 .whyText + .whyText {
-  margin-top: 26px;
+  margin-top: 20px;
 }
 .stats {
   list-style: none;
-  margin: 50px 0 0;
+  margin: 36px 0 0;
   padding: 0;
   display: flex;
-  gap: 18px;
+  gap: 14px;
 }
 .stat {
-  width: 146px;
-  height: 138px;
+  width: 132px;
+  height: 124px;
   border: 1px solid var(--border);
   border-radius: 14px;
   background: var(--white);
@@ -98,13 +98,13 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 10px;
+  gap: 8px;
   text-align: center;
   padding: 0 10px;
 }
 .statNum {
   font-family: var(--font-playfair);
-  font-size: 80px;
+  font-size: 64px;
   line-height: 0.8;
   color: var(--blue);
 }
@@ -116,24 +116,24 @@
 }
 .pillars {
   list-style: none;
-  margin: 46px 0 0;
+  margin: 36px 0 0;
   padding: 0;
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 34px;
+  gap: 24px;
 }
 .pillar {
-  min-height: 190px;
+  min-height: 168px;
   background: var(--white);
   border: 1px solid var(--border);
   border-radius: 14px;
-  padding: 30px 21px;
+  padding: 24px 18px;
   display: flex;
   flex-direction: column;
 }
 .pillarIcon {
-  width: 54px;
-  height: 54px;
+  width: 48px;
+  height: 48px;
   border-radius: 12px;
   background: var(--surface-soft);
   border: 1px solid #d5dbef;
@@ -142,15 +142,15 @@
   place-items: center;
 }
 .pillarTitle {
-  margin-top: 18px;
+  margin-top: 14px;
   font-family: var(--font-bricolage);
   font-weight: 500;
-  font-size: 16px;
+  font-size: 15px;
 }
 .pillarText {
   margin-top: 6px;
   font-family: var(--font-inter);
-  font-size: 15px;
+  font-size: 14px;
   color: #5b5b5b;
 }
 
@@ -159,81 +159,81 @@
   background: var(--navy);
   color: var(--white);
   text-align: center;
-  padding: 80px var(--gutter);
+  padding: 64px var(--gutter);
 }
 .teamTitle {
   font-family: var(--font-bricolage);
   font-weight: 600;
-  font-size: 32px;
+  font-size: 28px;
   color: var(--gold);
 }
 .teamLead {
   max-width: 898px;
-  margin: 24px auto 0;
+  margin: 18px auto 0;
   font-family: var(--font-inter);
   font-weight: 500;
-  font-size: 18px;
+  font-size: 16px;
 }
 .members {
   list-style: none;
-  margin: 70px auto 0;
+  margin: 52px auto 0;
   padding: 0;
   display: flex;
   justify-content: center;
   flex-wrap: wrap;
-  gap: 74px;
+  gap: 48px;
 }
 .member {
-  width: 286px;
-  height: 323px;
+  width: 260px;
+  height: 296px;
   background: var(--white);
   color: var(--black);
   border-radius: 14px;
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding-top: 46px;
+  padding-top: 36px;
   box-shadow: 0 20px 40px -20px rgba(0, 0, 0, 0.5);
 }
 .memberAvatar {
-  width: 148px;
-  height: 148px;
+  width: 128px;
+  height: 128px;
   border-radius: 50%;
   background: var(--navy);
   border: 5px solid var(--gold);
   color: var(--white);
   font-family: var(--font-bricolage);
   font-weight: 500;
-  font-size: 96px;
+  font-size: 80px;
   line-height: 1;
   display: grid;
   place-items: center;
   padding-bottom: 6px;
 }
 .memberName {
-  margin-top: 30px;
+  margin-top: 24px;
   font-family: var(--font-inter);
   font-weight: 700;
-  font-size: 16px;
+  font-size: 15px;
   padding: 0 10px;
 }
 .memberRole {
-  margin-top: 16px;
+  margin-top: 12px;
   font-family: var(--font-inter);
   font-size: 13px;
   color: var(--text-muted);
 }
 .adviser {
-  margin: 66px auto 0;
+  margin: 48px auto 0;
   width: fit-content;
   max-width: 100%;
   display: flex;
   align-items: center;
-  gap: 18px;
+  gap: 14px;
   background: var(--white);
   color: var(--black);
   border-radius: 999px;
-  padding: 12px 52px 12px 16px;
+  padding: 10px 36px 10px 14px;
   text-align: left;
 }
 .adviserAvatar {
@@ -267,7 +267,7 @@
 /* Project */
 .projectWrap {
   background: var(--white);
-  padding: 42px var(--gutter);
+  padding: 36px var(--gutter);
 }
 .project {
   max-width: 1174px;
@@ -275,26 +275,26 @@
   background: var(--navy);
   color: var(--white);
   border-radius: 14px;
-  padding: 30px 40px 58px;
+  padding: 24px 32px 42px;
   text-align: center;
 }
 .projectLabel {
   font-family: var(--font-inter);
   font-weight: 700;
-  font-size: 16px;
+  font-size: 14px;
   color: var(--gold);
 }
 .projectName {
   max-width: 1074px;
-  margin: 26px auto 0;
+  margin: 20px auto 0;
   font-family: var(--font-inter);
   font-weight: 700;
-  font-size: 20px;
-  line-height: 0.95;
+  font-size: 18px;
+  line-height: 1.4;
 }
 .stack {
   list-style: none;
-  margin: 34px 0 0;
+  margin: 26px 0 0;
   padding: 0;
   display: flex;
   justify-content: center;
@@ -302,48 +302,48 @@
   gap: 8px;
 }
 .stack li {
-  height: 32px;
+  height: 30px;
   display: inline-grid;
   place-items: center;
-  padding: 0 30px;
+  padding: 0 22px;
   border-radius: 999px;
   background: rgba(255, 255, 255, 0.14);
   font-family: var(--font-inter);
   font-weight: 600;
-  font-size: 16px;
+  font-size: 14px;
 }
 
 /* Contact CTA */
 .contact {
   background: var(--surface-grey);
-  padding: 70px var(--gutter) 74px;
+  padding: 56px var(--gutter) 60px;
   text-align: center;
 }
 .contactTitle {
   font-family: var(--font-bricolage);
   font-weight: 500;
-  font-size: 36px;
+  font-size: 30px;
   color: var(--navy);
 }
 .contactText {
-  margin-top: 18px;
+  margin-top: 14px;
   font-family: var(--font-inter);
   font-weight: 500;
-  font-size: 18px;
+  font-size: 16px;
 }
 .contactBtn {
-  margin-top: 36px;
+  margin-top: 26px;
   display: inline-grid;
   place-items: center;
-  min-height: 39px;
-  min-width: 197px;
-  padding: 0 24px;
+  min-height: 44px;
+  min-width: 180px;
+  padding: 0 20px;
   border-radius: 7px;
   background: var(--yellow);
   color: var(--black);
   font-family: var(--font-inter);
   font-weight: 600;
-  font-size: 16px;
+  font-size: 14px;
   text-decoration: none;
 }
 .contactBtn:hover {
@@ -375,22 +375,22 @@
 }
 @media (max-width: 560px) {
   .hero {
-    padding: 48px 16px;
+    padding: 56px 16px 40px;
   }
   .title {
-    font-size: 38px;
-    line-height: 0.95;
+    font-size: 34px;
+    line-height: 1.05;
   }
   .lead,
   .whyText {
-    font-size: 17px;
-    line-height: 1.2;
+    font-size: 15px;
+    line-height: 1.5;
   }
   .why,
   .team,
   .contact {
-    padding-top: 48px;
-    padding-bottom: 56px;
+    padding-top: 40px;
+    padding-bottom: 44px;
   }
   .stats {
     gap: 10px;
@@ -401,7 +401,7 @@
     height: 116px;
   }
   .statNum {
-    font-size: 56px;
+    font-size: 48px;
   }
   .member {
     width: 100%;
@@ -420,7 +420,7 @@
     line-height: 1.2;
   }
   .contactTitle {
-    font-size: 28px;
+    font-size: 24px;
   }
 }
 

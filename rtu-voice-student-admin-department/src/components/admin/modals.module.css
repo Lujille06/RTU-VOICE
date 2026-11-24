@@ -1,7 +1,7 @@
 /* Admin pop-ups — Figma: Assign, Reject, and Reassign complaint */
 .btn {
-  min-width: 115px;
-  min-height: 52px;
+  min-width: 112px;
+  min-height: 44px;
   border-radius: 10px;
   font-family: var(--font-inter);
   font-weight: 600;
@@ -26,7 +26,7 @@
   color: #17213b;
 }
 .textarea {
-  min-height: 128px;
+  min-height: 112px;
 }
 .help {
   font-size: 13px;

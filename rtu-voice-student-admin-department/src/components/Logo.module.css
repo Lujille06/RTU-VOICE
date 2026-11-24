@@ -41,7 +41,7 @@
   min-width: 0;
 }
 .wordmark {
-  font-family: var(--font-playfair);
+  font-family: var(--font-brand);
   font-weight: 700;
   font-size: 28px;
   line-height: 1;

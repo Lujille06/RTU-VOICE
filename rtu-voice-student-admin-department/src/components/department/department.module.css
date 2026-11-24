@@ -1,12 +1,13 @@
 /* Department Portal — Figma "Department Portal / Dashboard": 4 stat boxes, search + status filter, table with Update status + Add Update */
 .updateSelect {
-  width: 124px;
+  width: 136px;
   min-width: 0;
-  height: 38px;
-  min-height: 38px;
+  /* Match the action slot and prevent flex shrink from clipping the placeholder. */
+  flex: none;
+  height: 44px;
+  min-height: 44px;
   padding-left: 12px;
-  /* tighter arrow area so "Update status" (87px) fits in the 136px slot */
-  padding-right: 30px;
+  padding-right: 28px;
   background-position: right 10px center;
   border: 1px solid #c9cfdc;
   border-radius: 8px;
@@ -19,7 +20,7 @@
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  height: 38px;
+  height: 44px;
   padding: 0 14px;
   border: 0;
   border-radius: 8px;
@@ -37,7 +38,7 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  height: 38px;
+  height: 44px;
   padding: 0 14px;
   border: 1px solid #14367e;
   border-radius: 8px;
@@ -59,7 +60,7 @@
   --slot-h: 38px;
 }
 .lockedButton {
-  width: 124px;
+  width: 136px;
   flex: none;
   cursor: not-allowed;
 }
@@ -136,8 +137,8 @@
   outline-offset: 2px;
 }
 .actionMenu {
-  position: absolute;
-  z-index: 30;
+  position: fixed;
+  z-index: 1000;
   top: calc(100% + 6px);
   right: 0;
   display: grid;

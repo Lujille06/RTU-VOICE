@@ -3,17 +3,17 @@
   display: grid;
   grid-template-columns: 1fr 170px;
   gap: 16px;
-  padding: 28px 32px 28px 30px;
+  padding: 20px 24px;
   background: var(--white);
   border: 1px solid var(--border);
-  border-radius: 22px;
+  border-radius: var(--radius-card);
   box-shadow: var(--shadow-panel);
 }
 .searchBox {
   display: flex;
   align-items: center;
   gap: 8px;
-  height: 52px;
+  height: 46px;
   padding: 0 14px;
   border: 1px solid var(--border);
   border-radius: 10px;
@@ -44,7 +44,7 @@
   letter-spacing: 0;
 }
 .trackBtn {
-  height: 52px;
+  height: 46px;
   border: 0;
   border-radius: 10px;
   background: var(--blue);
@@ -70,8 +70,8 @@
 
 /* Result */
 .resultCard {
-  margin: 26px 0 64px;
-  padding: 30px 30px 34px;
+  margin: 20px 0 40px;
+  padding: 24px 26px 26px;
   background: var(--white);
   border: 1px solid var(--border);
   border-radius: 22px;
@@ -515,7 +515,15 @@
   color: #5b5b5b;
   overflow-wrap: anywhere;
 }
+.updateMessage {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 6px;
+}
 .updateMsg {
+  width: 100%;
   padding: 16px 30px;
   border: 1px solid #d5dbef;
   border-radius: 10px;
@@ -523,6 +531,36 @@
   font-size: 13px;
   line-height: 1.4;
   color: #3a3f51;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+.updateMsgCollapsed {
+  display: -webkit-box;
+  max-height: calc(9.8em + 2rem + 2px);
+  overflow: hidden;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 7;
+}
+.updateMore {
+  min-height: 32px;
+  padding: 2px 4px;
+  border: 0;
+  border-radius: 4px;
+  background: transparent;
+  color: var(--blue);
+  font-family: var(--font-inter);
+  font-size: 13px;
+  font-weight: 600;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  cursor: pointer;
+}
+.updateMore:hover {
+  color: var(--navy);
+}
+.updateMore:focus-visible {
+  outline: 2px solid var(--blue);
+  outline-offset: 2px;
 }
 /* "View updates" with no update yet. */
 .updateEmpty {
@@ -575,7 +613,7 @@
 
 @media (max-width: 767px) {
   .updateList {
-    gap: 16px;
+    gap: 12px;
   }
   .updateEntry {
     gap: 6px;
@@ -586,12 +624,18 @@
   }
   .updateMsg,
   .updateNote {
-    padding: 14px;
+    padding: 12px;
     border-radius: 12px;
-    font-size: 14px;
-    line-height: 1.55;
+    font-size: 13px;
+    line-height: 1.5;
     text-align: left;
     overflow-wrap: anywhere;
+  }
+  .updateMsgCollapsed {
+    max-height: calc(10.5em + 1.5rem + 2px);
+  }
+  .updateMore {
+    min-height: 36px;
   }
   .updateNote {
     gap: 10px;
@@ -601,6 +645,19 @@
     width: 18px;
     height: 18px;
     margin-top: 2px;
+  }
+}
+
+@media (max-width: 380px) {
+  .updateMsg,
+  .updateNote {
+    padding: 10px;
+  }
+  .updateMsgCollapsed {
+    max-height: calc(10.5em + 1.25rem + 2px);
+  }
+  .updateNote {
+    gap: 8px;
   }
 }
 

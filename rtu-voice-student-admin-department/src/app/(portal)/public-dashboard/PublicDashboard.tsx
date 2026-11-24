@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { Icon } from "@/components/Icon";
 import { StatusBadge } from "@/components/StatusBadge";
+import { Pager } from "@/components/admin/bits";
 import { formatCardDate } from "@/lib/format";
 import { PUBLIC_STATUSES, type Category, type PublicConcern, type PublicStatus } from "@/lib/types";
 import { getPublicComplaints } from "@/actions/studentActions"; // your real path
@@ -97,7 +98,7 @@ export function PublicDashboard({
   };
 
   return (
-    <div className="container">
+    <div className={`container ${styles.page}`}>
       <div className="page-head">
         <h1 className="page-title">Public Dashboard</h1>
         <p className="page-subtitle">
@@ -110,7 +111,7 @@ export function PublicDashboard({
           <span className={styles.filterLabel} id="filter-label">
             Filter:
           </span>
-          <select aria-label="Filter by status" className={`select ${styles.filter}`} value={status} onChange={(e) => update({ status: e.target.value })}>
+          <select aria-label="Filter by status" className={`select ${styles.filter} ${status ? "" : "is-placeholder"}`} value={status} onChange={(e) => update({ status: e.target.value })}>
             <option value="">Status</option>
             {PUBLIC_STATUSES.map((s) => (
               <option key={s} value={s}>
@@ -118,7 +119,7 @@ export function PublicDashboard({
               </option>
             ))}
           </select>
-          <select aria-label="Filter by category" className={`select ${styles.filter}`} value={category} onChange={(e) => update({ category: e.target.value })}>
+          <select aria-label="Filter by category" className={`select ${styles.filter} ${category ? "" : "is-placeholder"}`} value={category} onChange={(e) => update({ category: e.target.value })}>
             <option value="">Category</option>
             {categories.map((c) => (
               <option key={c} value={c}>
@@ -165,19 +166,7 @@ export function PublicDashboard({
         </ul>
       )}
 
-      {pageCount > 1 && (
-        <nav className={styles.pager} aria-label="Pagination">
-          <button type="button" className={styles.pageArrow} aria-label="Previous page" disabled={current === 1} onClick={() => setPage(current - 1)}>
-            <Icon name="chevron-left" size={18} strokeWidth={2.2} />
-          </button>
-          <span aria-live="polite">
-            Page {current} of {pageCount}
-          </span>
-          <button type="button" className={styles.pageArrow} aria-label="Next page" disabled={current === pageCount} onClick={() => setPage(current + 1)}>
-            <Icon name="chevron-right" size={18} strokeWidth={2.2} />
-          </button>
-        </nav>
-      )}
+      {pageCount > 1 && <Pager page={current} pageSize={PAGE_SIZE} total={filtered.length} onPage={(nextPage) => setPage(nextPage)} />}
 
       {current === pageCount && hasMore && (
         <div className={styles.loadMore}>

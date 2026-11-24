@@ -11,18 +11,18 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 16px;
-  padding: 0 75px 0 55px;
+  gap: 14px;
+  padding: 0 56px;
 }
 .nav {
   display: flex;
   align-items: center;
-  gap: 18px;
+  gap: 14px;
 }
 .desktopActions {
   display: flex;
   align-items: center;
-  gap: 18px;
+  gap: 14px;
 }
 .mobileAction {
   display: none;
@@ -31,13 +31,13 @@
 .plain {
   display: inline-grid;
   place-items: center;
-  min-width: 90px;
-  height: 38px;
-  padding: 0 16px;
+  min-width: 84px;
+  height: 36px;
+  padding: 0 14px;
   border-radius: 9px;
   font-family: var(--font-inter);
   font-weight: 700;
-  font-size: 14px;
+  font-size: 13px;
   text-decoration: none;
   transition: background-color 0.15s ease;
 }

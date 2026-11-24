@@ -1,6 +1,6 @@
 .page :global(.page-head) {
   padding-top: 12px;
-  padding-bottom: 0;
+  padding-bottom: 20px;
 }
 .page :global(.page-title) {
   font-size: 36px;
@@ -20,8 +20,8 @@
   padding: 16px 36px 12px;
   background: var(--white);
   border: 1px solid #d8dce6;
-  border-radius: 20px;
-  box-shadow: 0 4px 16px rgba(15, 31, 74, 0.08);
+  border-radius: var(--radius-card);
+  box-shadow: var(--shadow-card);
 }
 .profileHeader {
   display: flex;
@@ -92,17 +92,25 @@
   outline-offset: 2px;
 }
 .accountForm {
-  padding: 10px 0 8px;
+  padding: 18px 0 24px;
+}
+.accountSectionTitle {
+  margin: 0 0 14px;
+  color: var(--navy);
+  font-family: var(--font-montserrat);
+  font-size: 18px;
+  font-weight: 700;
+  line-height: 1.35;
 }
 .fields {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 14px;
 }
 .row2 {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 12px;
+  gap: 16px;
 }
 .input {
   min-height: 48px;
@@ -132,7 +140,7 @@
 }
 .passwordForm {
   margin: 0 -36px;
-  padding: 0 36px;
+  padding: 0 36px 24px;
   border-top: 1px solid #e8ebf1;
   background: #f8f9fc;
   border-radius: 0 0 19px 19px;
@@ -142,7 +150,8 @@
   align-items: center;
   justify-content: space-between;
   gap: 18px;
-  min-height: 60px;
+  min-height: 68px;
+  padding: 16px 0 14px;
 }
 .passwordIntro {
   min-width: 0;
@@ -150,8 +159,8 @@
 .passwordTitle {
   margin: 0;
   color: var(--navy);
-  font-family: var(--font-inter);
-  font-size: 16px;
+  font-family: var(--font-montserrat);
+  font-size: 17px;
   font-weight: 700;
   line-height: 1.35;
 }
@@ -165,8 +174,9 @@
 .passwordFields {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
+  align-items: start;
   gap: 8px 14px;
-  padding: 0 0 8px;
+  padding: 4px 0 10px;
 }
 .actions {
   display: flex;
@@ -244,7 +254,11 @@
     width: 100%;
   }
   .accountForm {
-    padding: 18px 0;
+    padding: 18px 0 24px;
+  }
+  .accountSectionTitle {
+    margin-bottom: 12px;
+    font-size: 16px;
   }
   .row2,
   .passwordFields {
@@ -255,7 +269,7 @@
   }
   .passwordForm {
     margin: 0 -20px;
-    padding: 0 20px;
+    padding: 0 20px 24px;
     border-radius: 0 0 15px 15px;
   }
   .passwordSummary {

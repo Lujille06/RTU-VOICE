@@ -11,11 +11,11 @@
   width: 100%;
   max-width: 1440px;
   margin: 0 auto;
-  padding: 56px 58px 56px 96px;
+  padding: 40px 48px;
   display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(0, 578px);
+  grid-template-columns: minmax(0, 1fr) minmax(0, 520px);
   align-items: center;
-  gap: 48px;
+  gap: 36px;
 }
 
 /* ---------- Left hero ---------- */
@@ -25,12 +25,12 @@
 .tagline {
   font-family: var(--font-inter);
   font-weight: 500;
-  font-size: 16px;
+  font-size: 14px;
   letter-spacing: 0.3px;
   color: var(--yellow);
 }
 .authEyebrow {
-  font-size: 16px;
+  font-size: 14px;
 }
 .eyebrow,
 .caption {
@@ -42,7 +42,7 @@
   flex-direction: column;
   font-family: var(--font-playfair);
   font-weight: 700;
-  font-size: 122px;
+  font-size: 96px;
   line-height: 0.86;
   letter-spacing: -0.5px;
 }
@@ -53,10 +53,10 @@
   color: var(--yellow);
 }
 .heroText {
-  margin-top: 36px;
+  margin-top: 24px;
   max-width: 540px;
   font-family: var(--font-inter);
-  font-size: 16px;
+  font-size: 15px;
   line-height: 1.2;
   color: var(--white);
 }
@@ -69,15 +69,15 @@
   background: var(--white);
   color: var(--black);
   border: 1px solid var(--border);
-  border-radius: 24px;
+  border-radius: 20px;
   box-shadow: 0 10px 40px -10px rgba(0, 0, 0, 0.45);
-  padding: 46px 36px 40px;
+  padding: 34px 30px 30px;
 }
 .loginRegisterCard {
-  height: 631px;
+  height: auto;
 }
 .loginCard {
-  height: 550px;
+  height: auto;
 }
 .form.registerForm {
   margin-top: 22px;
@@ -95,15 +95,15 @@
 }
 .cardLogo {
   display: block;
-  width: 115px;
+  width: 96px;
   height: auto;
-  margin: -14px auto 12px;
+  margin: -8px auto 10px;
 }
 .cardTitle {
   text-align: center;
   font-family: var(--font-playfair);
   font-weight: 500;
-  font-size: 42px;
+  font-size: 34px;
   line-height: 1.1;
   color: var(--navy);
 }
@@ -114,7 +114,7 @@
   margin-top: 8px;
   text-align: center;
   font-family: var(--font-inter);
-  font-size: 15px;
+  font-size: 14px;
   color: #5f5f5f;
 }
 .cardSubtitle strong {
@@ -122,10 +122,10 @@
   font-weight: 700;
 }
 .form {
-  margin-top: 40px;
+  margin-top: 28px;
   display: flex;
   flex-direction: column;
-  gap: 22px;
+  gap: 16px;
 }
 .row2 {
   display: grid;
@@ -135,27 +135,27 @@
 .label {
   font-family: var(--font-inter);
   font-weight: 600;
-  font-size: 16px;
+  font-size: 14px;
   color: #1f1f1f;
 }
 .input {
   background: var(--input-bg);
   border-color: var(--border);
   border-radius: 8px;
-  min-height: 52px;
-  font-size: 16px;
+  min-height: 48px;
+  font-size: 15px;
 }
 .submit {
-  margin-top: 4px;
+  margin-top: 2px;
   width: 100%;
-  min-height: 52px;
+  min-height: 48px;
   border: 0;
   border-radius: 8px;
   background: var(--gold);
   color: #141414;
   font-family: var(--font-inter);
   font-weight: 700;
-  font-size: 18px;
+  font-size: 16px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -176,7 +176,7 @@
   margin-top: 4px;
   text-align: center;
   font-family: var(--font-inter);
-  font-size: 15px;
+  font-size: 14px;
   color: #1f1f1f;
 }
 .switch a {
@@ -212,21 +212,21 @@
 }
 /* ---------- OTP ---------- */
 .otp {
-  margin-top: 40px;
+  margin-top: 28px;
   display: flex;
   justify-content: center;
-  gap: 12px;
+  gap: 9px;
 }
 .otpBox {
-  width: 63px;
-  height: 81px;
+  width: 54px;
+  height: 68px;
   border: 1px solid var(--border);
   border-radius: 10px;
   background: var(--input-bg);
   text-align: center;
   font-family: var(--font-playfair);
   font-weight: 500;
-  font-size: 36px;
+  font-size: 30px;
   color: var(--navy);
   caret-color: var(--blue);
 }
@@ -242,7 +242,7 @@
 .resend {
   text-align: center;
   font-family: var(--font-inter);
-  font-size: 15px;
+  font-size: 14px;
   color: #6b6b6b;
 }
 .resendBtn {
@@ -767,7 +767,7 @@
   .card .cardTitle {
     margin: 0 0 0.25rem;
     text-align: center;
-    font-size: 1.375rem !important;
+    font-size: 1.25rem !important;
     line-height: 1.25 !important;
   }
   .card .cardSubtitle {
@@ -775,7 +775,7 @@
     margin: 0 0 0.875rem !important;
     text-align: center;
     color: #475569;
-    font-size: 0.8125rem !important;
+    font-size: 0.8rem !important;
     line-height: 1.4 !important;
   }
   .cardSubtitle strong {
@@ -811,14 +811,14 @@
   .input {
     box-sizing: border-box;
     width: 100%;
-    min-height: 2.875rem;
-    height: 2.875rem;
+    min-height: 2.75rem;
+    height: 2.75rem;
     padding: 0 0.75rem;
     border: 1px solid #cbd5e1;
     border-radius: 0.625rem;
     background: #ffffff;
     color: #0f172a;
-    font-size: 1rem;
+    font-size: 0.9375rem;
   }
   .input::placeholder {
     color: #94a3b8;
@@ -848,13 +848,13 @@
   }
   .submit {
     width: 100%;
-    min-height: 2.875rem;
+    min-height: 2.75rem;
     height: auto;
     margin-top: 0.125rem;
     padding: 0.625rem 0.875rem;
     border-radius: 0.625rem;
     background: var(--gold);
-    font-size: 1rem;
+    font-size: 0.9375rem;
     font-weight: 700;
   }
   .switch {
@@ -928,64 +928,64 @@
   height: auto;
   min-height: 0;
   align-self: center;
-  padding: 34px 32px 28px;
-  border-radius: 20px;
+  padding: 24px 22px 20px;
+  border-radius: 18px;
 }
 .registerCard .cardTitle {
-  font-size: 32px;
+  font-size: 24px;
   line-height: 1.15;
 }
 .registerCard .cardSubtitle {
-  margin: 6px 0 0;
-  font-size: 14px;
-  line-height: 1.45;
+  margin: 5px 0 0;
+  font-size: 13px;
+  line-height: 1.4;
 }
 .registerCard .form.registerForm {
-  margin-top: 16px;
-  gap: 12px;
+  margin-top: 12px;
+  gap: 9px;
 }
 .registerCard .row2 {
-  gap: 12px;
+  gap: 10px;
 }
 .registerCard :global(.field) {
-  gap: 5px;
+  gap: 4px;
 }
 .registerCard .label {
-  font-size: 14px;
+  font-size: 13px;
 }
 .registerCard .input {
-  min-height: 46px;
-  height: 46px;
-  border-radius: 7px;
-  font-size: 15px;
+  min-height: 42px;
+  height: 42px;
+  border-radius: 8px;
+  font-size: 14px;
 }
 .registerCard .submit {
-  min-height: 46px;
-  height: 46px;
-  margin-top: 2px;
-  border-radius: 7px;
-  font-size: 16px;
+  min-height: 42px;
+  height: 42px;
+  margin-top: 1px;
+  border-radius: 8px;
+  font-size: 14px;
 }
 .registerCard .switch {
   margin-top: 0;
-  font-size: 14px;
+  font-size: 13px;
 }
 
 @media (max-width: 767px) {
   .registerCard.card {
-    padding: 24px 22px;
+    padding: 20px 18px;
   }
   .registerCard.card .cardTitle {
-    font-size: 1.625rem !important;
-    line-height: 1.2 !important;
+    font-size: 1.25rem !important;
+    line-height: 1.25 !important;
   }
   .registerCard .form.registerForm {
-    margin-top: 14px;
-    gap: 12px;
+    margin-top: 12px;
+    gap: 10px;
   }
   .registerCard .input,
   .registerCard .submit {
-    min-height: 46px;
-    height: 46px;
+    min-height: 44px;
+    height: 44px;
   }
 }

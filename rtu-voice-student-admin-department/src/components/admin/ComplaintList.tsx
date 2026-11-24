@@ -143,7 +143,7 @@ export function ComplaintList({ kind, rows, total, statusTotal, page, department
       <div className={s.head}>
         <BackToDashboard />
         <div className={s.listTitleRow}>
-          <h1 className={s.listTitle}>{cfg.title}</h1>
+          <h1 className="page-title">{cfg.title}</h1>
           <span className={`${s.countPill} ${cfg.pill}`} aria-label={`${statusTotal} complaints`}>
             {statusTotal}
           </span>

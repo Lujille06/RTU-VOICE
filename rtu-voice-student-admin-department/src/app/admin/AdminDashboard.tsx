@@ -51,7 +51,7 @@ export function AdminDashboard({ tab, counts, pending, master, departments, load
   return (
     <div className="container">
       <div className={s.head}>
-        <h1 className={s.title}>Dashboard</h1>
+        <h1 className="page-title">Dashboard</h1>
         <p className={s.subtitle}>
           {tab === "master" ? "Master Tracking Queue — approved complaints now in department portals." : "Select a box to open its list."}
         </p>

@@ -28,9 +28,9 @@ const PILLARS: { icon: IconName; title: string; text: string }[] = [
 ];
 
 const TEAM = [
-  { initial: "B", name: "Bustenera, Crisartuz Lujille", role: "Senior Developer" },
-  { initial: "S", name: "Suarez, Juliana Kim", role: "Junior Developer" },
-  { initial: "D", name: "Dela Cruz, John Albert", role: "UI / UX Designer" },
+  { initial: "B", name: "Bustenera, Crisartuz Lujille", role: "Project Lead & Backend Developer" },
+  { initial: "S", name: "Suarez, Juliana Kim", role: "Frontend Developer" },
+  { initial: "D", name: "Dela Cruz, John Albert", role: "UI / UX Designer & Quality Assurance" },
 ];
 
 const STACK = ["Next.js", "Supabase", "OpenRouter AI", "Resend", "Vercel"];

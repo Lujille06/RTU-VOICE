@@ -19,7 +19,7 @@ export function DepartmentStatisticsView({ stats }: { stats: DepartmentDashboard
     <div className="container">
       <div className={s.head}>
         <BackToDashboard href="/department" />
-        <h1 className={s.listTitle}>Statistics</h1>
+        <h1 className="page-title">Statistics</h1>
         <p className={s.subtitle}>Statistics for your department only.</p>
       </div>
 
