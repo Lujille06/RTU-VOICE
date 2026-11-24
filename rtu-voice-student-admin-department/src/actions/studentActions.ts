@@ -1,0 +1,181 @@
+"use server";
+
+import { getCurrentUser } from "@/features/auth/guards";
+import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
+import { str } from "@/features/shared/sharedUtils";
+import type {
+    SubmitComplaintState,
+    TrackComplaintState,
+    TrackedComplaint,
+    HistoryState,
+    HistoryRow,
+    PublicRow,
+    Category,
+    PublicStatus,
+    RecentResolvedRow
+} from "@/features/student/studentTypes";
+import {
+    EVIDENCE_BUCKET,
+    URL_LIFETIME_SECONDS,
+    parseComplaintForm,
+    validateComplaintInput,
+    uploadEvidence,
+    removeFiles,
+    readTrackingId,
+} from "@/features/student/studentUtils";
+
+/* ---------------- submit ---------------- */
+
+export async function submitComplaint(formData: FormData): Promise<SubmitComplaintState> {
+    // who is submitting? (from the session, never from the form)
+    const me = await getCurrentUser();
+    if (!me || me.role !== "student") {
+        return { success: false, message: "Not allowed." };
+    }
+
+    const input = parseComplaintForm(formData);
+    const errors = validateComplaintInput(input);
+    if (errors) return { success: false, message: "", errors };
+
+    // upload first, so the RPC only receives paths + metadata
+    const admin = await createAdminClient();
+    const uploaded = await uploadEvidence(admin, input.evidence);
+    if (!uploaded) {
+        return { success: false, message: "", errors: { evidence: "Couldn't upload your evidence. Please try again." } };
+    }
+
+    // create the complaint through the database function (runs as the student)
+    const supabase = await createClient();
+    const { data, error } = await supabase.rpc("submit_complaint", {
+        p_title: input.title,
+        p_description: input.description,
+        p_category_id: input.categoryId,
+        p_is_public: input.releaseToPublic,
+        p_attachments: uploaded, // [{ path, name, type, size }]
+    });
+
+    if (error || !data) {
+        console.error("[submitComplaint] rpc failed:", error);
+        await removeFiles(admin, uploaded.map((u) => u.path)); // don't leave orphaned files
+        return { success: false, message: "Couldn't submit your concern. Please try again." };
+    }
+
+    const trackingId = readTrackingId(data);
+    if (!trackingId) {
+        return { success: false, message: "Your concern was saved, but we couldn't read its tracking ID." };
+    }
+
+    return { success: true, message: "You successfully submitted your complaint", trackingId };
+}
+
+/* ---------------- track ---------------- */
+
+// shared by trackComplaint (and anything else that needs one complaint's details)
+async function fetchTrackedComplaint(trackingId: string): Promise<TrackComplaintState> {
+    const supabase = await createClient();
+    const { data, error } = await supabase.rpc("track_complaint", { p_tracking_id: trackingId });
+
+    if (error) {
+        console.error("[fetchTrackedComplaint] rpc failed:", error);
+        return { success: false, message: "Something went wrong. Please try again." };
+    }
+    if (!data) return { success: false, message: "Complaint not found." };
+
+    return { success: true, message: "", trackResult: data as unknown as TrackedComplaint };
+}
+
+export async function trackComplaint(formData: FormData): Promise<TrackComplaintState> {
+    const me = await getCurrentUser();
+    if (!me || me.role !== "student") {
+        return { success: false, message: "Not allowed." };
+    }
+
+    const trackingId = str(formData.get("trackingId")).trim();
+    if (!trackingId) {
+        return { success: false, message: "", errors: { trackingId: "Please enter a valid tracking id" } };
+    }
+
+    return fetchTrackedComplaint(trackingId);
+}
+
+/* ---------------- history ---------------- */
+
+export async function getHistory(): Promise<HistoryState> {
+    const me = await getCurrentUser();
+    if (!me || me.role !== "student") return { success: false, message: "Not allowed." };
+
+    const supabase = await createClient();
+    const { data, error } = await supabase.rpc("get_my_complaints");
+
+    if (error) {
+        console.error("[getHistory] rpc failed:", error);
+        return { success: false, message: "Couldn't load your history. Please try again." };
+    }
+    if (!data) {
+        return { success: false, message: "No complaint submitted yet.", historyData: (data ?? []) as HistoryRow[] };
+    }
+
+    return { success: true, message: "", historyData: data as HistoryRow[] };
+}
+
+export async function getComplaintDetails(trackingId: string){
+    const me = await getCurrentUser();
+    if (!me || me.role !== "student") return { success: false, message: "Not allowed." };
+    
+    return fetchTrackedComplaint(trackingId);
+}
+
+/* ---------------- Public Dashboard ---------------- */
+
+const STATUS_IDS: Record<string, number> = { Assigned: 2, "In Progress": 3, Resolved: 4 };
+const STATUS_NAMES: Record<number, string> = { 2: "Assigned", 3: "In Progress", 4: "Resolved" };
+
+export async function getPublicComplaints(offset: number, status: string, category: string) {
+    const me = await getCurrentUser();
+    if (!me || me.role !== "student") return {success: false, message: "Not allowed."};
+    
+    const supabase = await createClient();
+
+    const { data: catData } = await supabase.from("categories").select("id, category");
+    const cats = (catData ?? []) as { id: number; category: string }[];
+    const catId = cats.find((c) => c.category === category)?.id ?? null;
+    const catNames = new Map<number, string>(cats.map((c): [number, string] => [c.id, c.category]));
+
+    const { data, error } = await supabase.rpc("get_public_complaints", {
+        p_offset: offset,
+        p_status: STATUS_IDS[status] ?? null,
+        p_category: catId,
+    });
+    if (error) return {success: false, message: "Could not load complaints."};
+
+    const rows = (data ?? []) as PublicRow[];
+    return {
+        success: true,
+        message: "",
+        total: Number(rows[0]?.total_count ?? 0),
+        rows: rows.map((r) => ({
+            id: r.id,
+            title: r.ai_title,
+            summary: r.ai_summary,
+            category: catNames.get(r.category_id) as Category,
+            status: STATUS_NAMES[r.status_id] as PublicStatus,
+            date: r.created_at,
+            })),
+    };
+}
+
+export async function getRecentResolvedPublic(): Promise<{ success: boolean; message: string; data?: RecentResolvedRow[] }> {
+  const me = await getCurrentUser();
+  if (!me || me.role !== "student") return { success: false, message: "Not allowed." };
+
+  const supabase = await createClient();
+  const { data, error } = await supabase.rpc("get_recent_resolved_public");
+
+  if (error) {
+    console.error("[getRecentResolvedPublic] rpc failed:", error);
+    return { success: false, message: "Couldn't load recent resolved complaints. Please try again." };
+  }
+
+  return { success: true, message: "", data: (data ?? []) as RecentResolvedRow[] };
+}

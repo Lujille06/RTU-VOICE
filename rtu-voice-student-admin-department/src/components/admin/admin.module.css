@@ -247,6 +247,19 @@
   color: #4a5470;
   font-size: 15px;
 }
+.emptyMessage {
+  margin: 0;
+}
+.emptyHint {
+  margin: 6px 0 0;
+  font-size: 14px;
+  color: var(--text-muted);
+}
+.emptyAction {
+  margin-top: 16px;
+  min-height: 44px;
+  padding: 0 22px;
+}
 
 /* ---------- Pills & priority ---------- */
 .pill {
@@ -440,7 +453,7 @@
   }
   .table th[data-col="date"] { width: 100px; }
   .table th[data-col="id"] { width: 116px; }
-  .table th[data-col="category"] { width: 210px; }
+  .table th[data-col="category"] { width: 224px; } /* fits "Technology & Online Systems" on one line */
   .table th[data-col="dept"] { width: 172px; }
   .table th[data-col="priority"] { width: 100px; }
   .table th[data-col="status"] { width: 120px; }
@@ -449,7 +462,7 @@
   .table th[data-col="assign"] { width: 228px; }
   .table th[data-col="reject"] { width: 112px; }
   .table th[data-col="actions-admin"] { width: 280px; } /* 120 + 8 + 128 + padding */
-  .table th[data-col="actions-dept"] { width: 336px; } /* 40 + 8 + 136 + 8 + 120 + padding */
+  .table th[data-col="actions-dept"] { width: 224px; } /* status control + kebab + padding */
 
   /* Fixed button slots in the master queue */
   .slotView {

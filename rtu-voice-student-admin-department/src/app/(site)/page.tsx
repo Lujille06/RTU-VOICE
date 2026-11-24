@@ -1,9 +1,9 @@
 import Link from "next/link";
 import { Icon, type IconName } from "@/components/Icon";
 import { StatusBadge } from "@/components/StatusBadge";
-import { LANDING_PREVIEW } from "@/lib/demo-data";
 import type { PublicConcern } from "@/lib/types";
 import { Faq } from "./Faq";
+import { HowToSubmitSection } from "./HowToSubmitSection";
 import styles from "./landing.module.css";
 
 const STEPS: { icon: IconName; title: string; text: string }[] = [
@@ -13,18 +13,29 @@ const STEPS: { icon: IconName; title: string; text: string }[] = [
   { icon: "search", title: "TRACK", text: "Follow the status anytime and view public dashboard." },
 ];
 
+/** The nine complaint categories, in the same order as CATEGORIES (src/lib/types.ts). Accents alternate. */
 const RAISE: { label: string; icon: IconName; accent: "yellow" | "navy" }[] = [
   { label: "ACADEMIC", icon: "notebook", accent: "yellow" },
   { label: "FACILITIES & INFRASTRUCTURE", icon: "building", accent: "navy" },
   { label: "ADMINISTRATIVE", icon: "users-cog", accent: "yellow" },
   { label: "STUDENT LIFE", icon: "user", accent: "navy" },
-  { label: "OTHER", icon: "more", accent: "yellow" },
+  { label: "SAFETY AND SECURITY", icon: "shield-lock", accent: "yellow" },
+  { label: "TECHNOLOGY & ONLINE SYSTEMS", icon: "laptop", accent: "navy" },
+  { label: "FOOD, HEALTH & SANITATION", icon: "apple", accent: "yellow" },
+  { label: "LIBRARY & LEARNING RESOURCES", icon: "book-open", accent: "navy" },
+  { label: "OTHERS", icon: "more", accent: "yellow" },
 ];
 
 const AUDIENCES = [
   { title: "Other students and the public", text: "Never see who you are. The dashboard shows only a depersonalized summary." },
   { title: "The department", text: "Sees your concern and evidence, not your name." },
   { title: "Administrators", text: "Keep an internal link between your account and your concern, so they can follow up, investigate abuse, and respond to serious cases." },
+];
+
+const LANDING_PREVIEW: PublicConcern[] = [
+  { id: "l1", title: "Leaking ceiling in a Main Building classroom", summary: "", category: "Facilities & Infrastructure", status: "In Progress", date: "2026-03-12" },
+  { id: "l2", title: "Delay in releasing requested documents", summary: "", category: "Administrative", status: "Assigned", date: "2026-03-11" },
+  { id: "l3", title: "Broken ceiling fan in a Computer Lab", summary: "", category: "Facilities & Infrastructure", status: "Resolved", date: "2026-03-09" },
 ];
 
 /** One sample per public status, taken from the demo public dashboard data. */
@@ -98,8 +109,9 @@ export default function LandingPage() {
             </li>
           ))}
         </ul>
-        <p className={styles.raiseNote}>Add evidence as JPG/PNG, PDF, MP3/WAV, or MP4, up to 5 MB per submission.</p>
       </section>
+
+      <HowToSubmitSection />
 
       {/* Privacy */}
       <section className={styles.privacy} aria-labelledby="privacy-title">
@@ -110,8 +122,6 @@ export default function LandingPage() {
               Identity-shielded by default, not untraceable.
             </h2>
             <p className={styles.privacyText}>We&apos;re clear about who can see what, so you can decide what to share.</p>
-            <hr className={styles.privacyRule} />
-            <p className={styles.privacyText}>Tip: avoid names, contact details, and identifying photos or recordings.</p>
             <Link href="/privacy" className={styles.privacyLink}>
               Read the Privacy Notice →
             </Link>
@@ -158,11 +168,6 @@ export default function LandingPage() {
         </h2>
         <Faq />
       </section>
-
-      <div className={styles.notice} role="note">
-        <Icon name="alert-triangle" size={16} />
-        <span>Please provide clear details and supporting evidence so your concern can be reviewed properly.</span>
-      </div>
 
       {/* CTA */}
       <section className={styles.cta} aria-labelledby="cta-title">

@@ -1,8 +1,10 @@
+// src/app/admin/assigned/page.tsx (replaces page_d99d02.tsx)
 import type { Metadata } from "next";
-import { ComplaintList } from "@/components/admin/ComplaintList";
+import { AdminListPage } from "@/components/admin/AdminListPage";
+import type { SearchParamsInput } from "@/features/admin/adminUi";
 
 export const metadata: Metadata = { title: "Assigned" };
 
-export default function Page() {
-  return <ComplaintList kind="assigned" />;
+export default function Page({ searchParams }: { searchParams: SearchParamsInput }) {
+  return <AdminListPage kind="assigned" searchParams={searchParams} />;
 }

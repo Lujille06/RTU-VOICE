@@ -7,7 +7,9 @@ import x from "./superadmin.module.css";
 
 /**
  * Yes/no confirmation for superadmin actions. onConfirm returns an error message to show
- * inside the dialog (the action did not happen), or null when it succeeded.
+ * inside the dialog (the action did not happen), or null when it succeeded. It may be async:
+ * the buttons stay disabled while it runs, so a server action can be awaited here and a
+ * refusal (for example "open complaints") is shown in the dialog.
  */
 export function ConfirmDialog({
   title,
@@ -24,7 +26,7 @@ export function ConfirmDialog({
   confirmLabel: string;
   danger?: boolean;
   onCancel: () => void;
-  onConfirm: () => string | null;
+  onConfirm: () => string | null | Promise<string | null>;
 }) {
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
@@ -45,12 +47,20 @@ export function ConfirmDialog({
             type="button"
             className={`btn ${danger ? m.danger : "btn-primary"} ${m.btn}`}
             disabled={busy || !!error}
-            onClick={() => {
+            onClick={async () => {
               if (busy) return;
               setBusy(true);
-              const result = onConfirm();
-              if (result) {
-                setError(result);
+              try {
+                const result = await onConfirm();
+                // on success the caller closes the dialog; on a refusal stay open with the reason
+                if (result) {
+                  setError(result);
+                  setBusy(false);
+                }
+              } catch (err) {
+                // the server action itself failed (network, crash): show it instead of freezing the dialog
+                console.error(err);
+                setError("Something went wrong. Please try again.");
                 setBusy(false);
               }
             }}

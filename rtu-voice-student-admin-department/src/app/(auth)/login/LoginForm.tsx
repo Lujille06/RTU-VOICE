@@ -2,18 +2,14 @@
 
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useEffect, useState, type FormEvent } from "react";
+import { useState, type FormEvent } from "react";
 import { PasswordField, TextField } from "@/components/forms/Fields";
 import { useToast } from "@/components/Toast";
-import { DEMO_PASSWORD } from "@/lib/demo-data";
-import { useDemoStore } from "@/lib/demo-store";
-import { homeFor } from "@/lib/routes";
-import type { Role } from "@/lib/types";
+import { validateAndloginUser } from "@/actions/authActions";
 import { validateEmail } from "@/lib/validation";
 import styles from "../auth.module.css";
 
 export function LoginForm() {
-  const { login, session, ready, loginBlockedReason } = useDemoStore();
   const router = useRouter();
   const params = useSearchParams();
   const toast = useToast();
@@ -22,34 +18,35 @@ export function LoginForm() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [errors, setErrors] = useState<{ email?: string | null; password?: string | null }>({});
+  const [formError, setFormError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
 
-  // Already signed in (demo session): go straight to the portal.
-  useEffect(() => {
-    if (ready && session && !busy) router.replace(destination(session.role, requested));
-  }, [ready, session, busy, requested, router]);
-
-  const submit = (e: FormEvent) => {
+  const submit = async (e: FormEvent) => {
     e.preventDefault();
-    const nextErrors = {
-      email: validateEmail(email),
-      password: !password
-        ? "Enter your password."
-        : password !== DEMO_PASSWORD
-          ? "Incorrect password. Please try again."
-          : null,
-    };
-    // SIMULATED: deactivated accounts (Superadmin › Accounts / Departments) can't sign in.
-    if (!nextErrors.email && !nextErrors.password) nextErrors.email = loginBlockedReason(email);
-    setErrors(nextErrors);
-    if (nextErrors.email || nextErrors.password) return;
+    const next = { email: validateEmail(email), password: password ? null : "Enter your password." };
+    setErrors(next);
+    setFormError(null);
+    if (next.email || next.password) return;
+
     setBusy(true);
-    // SIMULATED sign-in: no credentials are checked against a server.
-    window.setTimeout(() => {
-      const account = login(email);
-      toast(`Welcome back, ${account.firstName}!`, "success");
-      router.replace(destination(account.role, requested));
-    }, 500);
+    try {
+      const fd = new FormData();
+      fd.set("email", email);
+      fd.set("password", password);
+      fd.set("next", requested ?? "");
+      const res = await validateAndloginUser(fd);
+      if (!res.success) {
+        setFormError(res.message);
+        setBusy(false);
+        return;
+      }
+      toast("Welcome back!", "success");
+      router.replace(res.redirectTo ?? "/");
+      router.refresh();
+    } catch {
+      setFormError("Something went wrong. Please try again.");
+      setBusy(false);
+    }
   };
 
   return (
@@ -60,16 +57,23 @@ export function LoginForm() {
       </p>
 
       <form className={styles.form} onSubmit={submit} noValidate>
+        {requested ? (
+          <p className="alert alert-info" role="status" style={{ padding: "10px 12px", fontSize: 14, lineHeight: 1.45 }}>
+            Please log in to continue. You&apos;ll go back to the page you opened.
+          </p>
+        ) : null}
+        {formError ? (
+          <p className="alert alert-error" role="alert" style={{ padding: "10px 12px", fontSize: 14 }}>
+            {formError}
+          </p>
+        ) : null}
         <TextField
           label="University Email"
           type="email"
           autoComplete="email"
           placeholder="2000-00000@rtu.edu.ph"
           value={email}
-          onChange={(e) => {
-            setEmail(e.target.value);
-            if (errors.email) setErrors((x) => ({ ...x, email: null }));
-          }}
+          onChange={(e) => { setEmail(e.target.value); if (errors.email) setErrors((x) => ({ ...x, email: null })); }}
           onBlur={() => email && setErrors((x) => ({ ...x, email: validateEmail(email) }))}
           error={errors.email}
           labelClassName={styles.label}
@@ -80,21 +84,16 @@ export function LoginForm() {
           autoComplete="current-password"
           placeholder="•••••••••••••••"
           value={password}
-          onChange={(e) => {
-            setPassword(e.target.value);
-            if (errors.password) setErrors((x) => ({ ...x, password: null }));
-          }}
+          onChange={(e) => { setPassword(e.target.value); if (errors.password) setErrors((x) => ({ ...x, password: null })); }}
           error={errors.password}
           labelClassName={styles.label}
           inputClassName={styles.input}
         />
-        <Link href="/forgot-password" className={styles.forgot}>
-          Forgot password?
-        </Link>
+        <Link href="/forgot-password" className={styles.forgot}>Forgot password?</Link>
 
-        <button type="submit" className={styles.submit} disabled={busy}>
-          {busy ? <span className="spinner" /> : null}
-          Login
+        <button type="submit" className={styles.submit} disabled={busy} aria-busy={busy}>
+          {busy ? <span className="spinner" aria-hidden="true" /> : null}
+          {busy ? "Logging in…" : "Login"}
         </button>
 
         <p className={`${styles.switch} ${styles.caption}`}>
@@ -103,16 +102,4 @@ export function LoginForm() {
       </form>
     </div>
   );
-}
-
-/**
- * Unified login (SRS v3): the account's role decides the portal. A ?next= target is honoured only
- * when it is an internal path that belongs to that role's portal.
- */
-function destination(role: Role, next: string | null): string {
-  const home = homeFor(role);
-  if (!next || !next.startsWith("/") || next.startsWith("//")) return home;
-  const belongsTo = (prefix: string) => next === prefix || next.startsWith(`${prefix}/`);
-  const target: Role = belongsTo("/admin") ? "admin" : belongsTo("/superadmin") ? "superadmin" : belongsTo("/department") ? "department" : "student";
-  return target === role ? next : home;
 }

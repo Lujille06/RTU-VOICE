@@ -10,10 +10,10 @@ export function LogoutDialog({ open, onClose, onConfirm }: { open: boolean; onCl
       open={open}
       onClose={onClose}
       size="square"
-      showClose
+      hideClose
       icon={<Icon name="log-out" size={28} strokeWidth={1.8} />}
       title="Logout?"
-      subtitle="You will need to log in again to submit or track a concern."
+      subtitle="You will need to log in again to continue."
       footer={
         <div className={styles.logoutButtons}>
           <button type="button" className={`btn btn-soft ${styles.modalBtn}`} onClick={onClose}>

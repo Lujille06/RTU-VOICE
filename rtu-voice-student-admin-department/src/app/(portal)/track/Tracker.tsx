@@ -1,33 +1,39 @@
 "use client";
 
+import Link from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
-import { useEffect, useEffectEvent, useState, type FormEvent } from "react";
+import { useEffect, useEffectEvent, useRef, useState, type FormEvent } from "react";
+import { UpdateMessages } from "@/components/ComplaintDetailsDialog";
 import { ComplaintStatusDetails } from "@/components/ComplaintStatusDetails";
 import { Icon } from "@/components/Icon";
 import { Modal } from "@/components/Modal";
-import { useDemoStore } from "@/lib/demo-store";
-import { formatMonthDay, formatTime } from "@/lib/format";
-import type { Complaint } from "@/lib/types";
-import { normalizeTrackingId } from "@/lib/validation";
+import { trackComplaint } from "@/actions/studentActions";
+import type { TrackedComplaint } from "@/features/student/studentTypes";
 import styles from "./track.module.css";
 
 const ID_PATTERN = /^STU-[A-Z0-9]{5}$/;
+const NOT_FOUND_MESSAGE = "Complaint not found."; // must match the text the action returns
 
-type Lookup = { state: "idle" } | { state: "invalid"; message: string } | { state: "notfound"; id: string } | { state: "found"; complaint: Complaint };
+type Lookup =
+  | { state: "idle" }
+  | { state: "invalid"; message: string }
+  | { state: "notfound"; id: string }
+  | { state: "error"; message: string }
+  | { state: "found"; complaint: TrackedComplaint };
 
 export function Tracker() {
   const params = useSearchParams();
   const pathname = usePathname();
-  const { findMyComplaint, ready } = useDemoStore();
 
   const initial = params.get("id") ?? "";
   const [query, setQuery] = useState(initial);
   const [lookup, setLookup] = useState<Lookup>({ state: "idle" });
   const [busy, setBusy] = useState(false);
   const [showUpdate, setShowUpdate] = useState(false);
+  const latest = useRef(0); // ignore a response that arrives after a newer lookup started
 
-  const run = (raw: string) => {
-    const id = normalizeTrackingId(raw);
+  const run = async (raw: string) => {
+    const id = raw.trim().toUpperCase();
     if (!id) {
       setLookup({ state: "invalid", message: "Enter a tracking ID." });
       return;
@@ -36,35 +42,48 @@ export function Tracker() {
       setLookup({ state: "invalid", message: "Tracking IDs look like STU-A3F1B (STU, a dash, then 5 letters or numbers)." });
       return;
     }
-    // SIMULATED lookup against this browser's demo data (the real system calls a secure RPC).
+
+    const mine = ++latest.current;
     setBusy(true);
-    window.setTimeout(() => {
-      const found = findMyComplaint(id);
-      setLookup(found ? { state: "found", complaint: found } : { state: "notfound", id });
-      setQuery(id);
-      setBusy(false);
-      // Keep the URL shareable (?id=…). The native History API updates it without a server round trip
-      // (it stays in sync with useSearchParams); router.replace fetched the page again and that request
-      // was cancelled. Skipped when the URL already shows this ID.
+    setQuery(id);
+    try {
+      const fd = new FormData();
+      fd.append("trackingId", id);
+      const res = await trackComplaint(fd);
+      if (mine !== latest.current) return;
+
+      if (res.success && res.trackResult) {
+        setLookup({ state: "found", complaint: res.trackResult });
+      } else if (res.errors?.trackingId) {
+        setLookup({ state: "invalid", message: res.errors.trackingId });
+      } else if (res.message === NOT_FOUND_MESSAGE) {
+        setLookup({ state: "notfound", id });
+      } else {
+        setLookup({ state: "error", message: res.message || "Something went wrong. Please try again." });
+      }
+
+      // Keep the URL shareable (?id=…) without a server round trip.
       if (params.get("id") !== id) window.history.replaceState(null, "", `${pathname}?id=${encodeURIComponent(id)}`);
-    }, 350);
+    } catch (err) {
+      console.error(err);
+      if (mine === latest.current) setLookup({ state: "error", message: "Something went wrong. Please try again." });
+    } finally {
+      if (mine === latest.current) setBusy(false);
+    }
   };
 
-  // Auto-track when arriving with ?id= — once, when the demo store has loaded. An effect event reads the
-  // latest ID without re-running the effect each time the URL changes.
+  // Auto-track once when arriving with ?id= (for example from the receipt page).
   const autoTrack = useEffectEvent(() => {
     if (initial) run(initial);
   });
   useEffect(() => {
-    if (ready) autoTrack();
-  }, [ready]);
+    autoTrack();
+  }, []);
 
   const submit = (e: FormEvent) => {
     e.preventDefault();
     run(query);
   };
-
-  const latestUpdate = lookup.state === "found" ? lookup.complaint.updates[lookup.complaint.updates.length - 1] : undefined;
 
   return (
     <div className="container">
@@ -110,7 +129,18 @@ export function Tracker() {
           <section className={`${styles.resultCard} ${styles.empty}`}>
             <Icon name="search" size={34} strokeWidth={1.6} />
             <h2>No concern found for {lookup.id}</h2>
-            <p>Check the ID on your receipt or open your History page. You can only look up concerns submitted from your account.</p>
+            <p>Check the ID on your receipt. You can only look up concerns submitted from your account.</p>
+            <Link href="/history" className="btn btn-outline" style={{ marginTop: 14, minHeight: 44, padding: "0 22px" }}>
+              Open your History
+            </Link>
+          </section>
+        ) : null}
+
+        {lookup.state === "error" ? (
+          <section className={`${styles.resultCard} ${styles.empty}`} role="alert">
+            <Icon name="alert-triangle" size={34} strokeWidth={1.6} />
+            <h2>We couldn&apos;t look that up</h2>
+            <p>{lookup.message}</p>
           </section>
         ) : null}
 
@@ -125,7 +155,7 @@ export function Tracker() {
         {lookup.state === "found" ? <ComplaintStatusDetails complaint={lookup.complaint} onViewUpdate={() => setShowUpdate(true)} /> : null}
       </div>
 
-      {lookup.state === "found" && latestUpdate ? (
+      {lookup.state === "found" ? (
         <Modal
           open={showUpdate}
           onClose={() => setShowUpdate(false)}
@@ -137,20 +167,13 @@ export function Tracker() {
             </button>
           }
         >
-          <div className={styles.updateList}>
-            {[...lookup.complaint.updates].reverse().map((update, index) => (
-              <article className={styles.updateEntry} key={`${update.at}-${index}`}>
-                <p className={styles.updateMeta}>
-                  {update.department} · {formatMonthDay(update.at)}, {formatTime(update.at)}
-                </p>
-                <div className={styles.updateMsg}>{update.message}</div>
-              </article>
-            ))}
-          </div>
-          <div className={styles.updateNote}>
-            <Icon name="info" size={20} />
-            This message is visible only to you and the administrators. It is never shown on the public dashboard.
-          </div>
+          <UpdateMessages complaint={lookup.complaint} />
+          {lookup.complaint.updates.length ? (
+            <div className={styles.updateNote}>
+              <Icon name="info" size={20} />
+              This message is visible only to you and the administrators. It is never shown on the public dashboard.
+            </div>
+          ) : null}
         </Modal>
       ) : null}
     </div>

@@ -1,8 +1,9 @@
 import type { Metadata } from "next";
-import { DepartmentList } from "@/components/department/DepartmentQueue";
+import { DepartmentListPage } from "@/components/department/DepartmentListPage";
+import type { SearchParamsInput } from "@/features/admin/adminUi";
 
-export const metadata: Metadata = { title: "In progress" };
+export const metadata: Metadata = { title: "Assigned" };
 
-export default function Page() {
-  return <DepartmentList kind="progress" />;
+export default function Page({ searchParams }: { searchParams: SearchParamsInput }) {
+  return <DepartmentListPage kind="progress" searchParams={searchParams} />;
 }

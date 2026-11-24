@@ -3,7 +3,11 @@ export const CATEGORIES = [
   "Facilities & Infrastructure",
   "Administrative",
   "Student Life",
-  "Other",
+  "Safety and Security",
+  "Technology & Online Systems",
+  "Food, Health & Sanitation",
+  "Library & Learning Resources",
+  "Others",
 ] as const;
 export type Category = (typeof CATEGORIES)[number];
 
@@ -78,8 +82,11 @@ export interface Complaint {
   description: string;
   submittedAt: string;
   status: Status;
-  /** True when submitted by the signed-in demo student (shown on History / Status Tracker). */
+  /** True when submitted by a student account (shown on that student's History / Status Tracker). */
   mine: boolean;
+  /** Which student submitted it (demo only; seed complaints belong to the demo student). Never shown to
+   *  staff: the real system keeps this link internally (pseudonymous, SRS §1). */
+  ownerEmail?: string;
   department?: Department;
   priority?: Priority;
   assignedAt?: string;
@@ -87,6 +94,9 @@ export interface Complaint {
   resolvedAt?: string;
   rejectedAt?: string;
   rejectionReason?: string;
+  returnedBy?: Department;
+  returnedAt?: string;
+  returnReason?: string;
   optOutOfPublic: boolean;
   /** AI-written, depersonalized text for the public dashboard (simulated in this build). */
   aiTitle?: string;
@@ -153,7 +163,7 @@ export interface AdminAccount {
 }
 
 /** SRS §3/§4: the Activity Log records assignments, reassignments and status changes (a rejection is a status change). */
-export const ACTIVITY_ACTIONS = ["Assigned", "Reassigned", "Rejected", "Status changed"] as const;
+export const ACTIVITY_ACTIONS = ["Assigned", "Reassigned", "Rejected", "Returned", "Status changed"] as const;
 export type ActivityAction = (typeof ACTIVITY_ACTIONS)[number];
 
 export interface ActivityEntry {

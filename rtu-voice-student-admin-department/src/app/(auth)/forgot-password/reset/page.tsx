@@ -7,59 +7,64 @@ import { useEffect, useState, type FormEvent } from "react";
 import { PasswordField } from "@/components/forms/Fields";
 import { Icon } from "@/components/Icon";
 import { useToast } from "@/components/Toast";
-import { useDemoStore } from "@/lib/demo-store";
+import { resetPassword } from "@/actions/authActions";
+import { useEmailStore } from "@/features/auth/authStore";
 import { passwordChecks, validateConfirm, validateNewPassword } from "@/lib/validation";
 import styles from "../../auth.module.css";
 
 export default function ResetPasswordPage() {
-  const { ready, resetEmail, resetVerified, finishReset } = useDemoStore();
   const router = useRouter();
   const toast = useToast();
   const [password, setPassword] = useState("");
   const [confirm, setConfirm] = useState("");
   const [errors, setErrors] = useState<{ password?: string | null; confirm?: string | null }>({});
+  const [formError, setFormError] = useState<string | null>(null);
+  const [expired, setExpired] = useState(false);
   const [busy, setBusy] = useState(false);
-  // Set once the new password is saved. finishReset() clears the reset state straight away; this keeps
-  // the form (with its spinner) on screen until the login page appears, instead of the start-over card.
-  const [finished, setFinished] = useState(false);
 
-  // Load the login page ahead of time so the switch is quick.
-  useEffect(() => {
-    router.prefetch("/login");
-  }, [router]);
+  useEffect(() => { router.prefetch("/login"); }, [router]);
 
-  if (!ready) return <div className={styles.card} aria-busy="true" style={{ minHeight: 420 }} />;
+  const submit = async (e: FormEvent) => {
+    e.preventDefault();
+    setFormError(null);
+    const next = { password: validateNewPassword(password), confirm: validateConfirm(password, confirm) };
+    setErrors(next);
+    if (next.password || next.confirm) return;
 
-  if (!finished && (!resetEmail || !resetVerified)) {
+    setBusy(true);
+    try {
+      const fd = new FormData();
+      fd.set("newPassword", password);
+      fd.set("confirmPassword", confirm);
+      const res = await resetPassword(fd);
+      if (!res.success) {
+        if (/expired/i.test(res.message)) setExpired(true);
+        else setFormError(res.message);
+        setBusy(false);
+        return;
+      }
+      useEmailStore.getState().reset();
+      toast("Password updated. You can now log in.", "success");
+      router.replace("/login");
+    } catch {
+      setFormError("Something went wrong. Please try again.");
+      setBusy(false);
+    }
+  };
+
+  if (expired) {
     return (
       <div className={styles.card}>
         <h2 className={styles.cardTitle}>Set a new password</h2>
         <p className={`${styles.cardSubtitle} ${styles.caption}`} style={{ marginTop: 16 }}>
-          Verify the code sent to your email before setting a new password.
+          Your reset session expired. Verify your email again.
         </p>
         <div className={styles.form}>
-          <Link href="/forgot-password" className={styles.submit} style={{ textDecoration: "none" }}>
-            Start password recovery
-          </Link>
+          <Link href="/forgot-password" className={styles.submit} style={{ textDecoration: "none" }}>Start password recovery</Link>
         </div>
       </div>
     );
   }
-
-  const submit = (e: FormEvent) => {
-    e.preventDefault();
-    const next = { password: validateNewPassword(password), confirm: validateConfirm(password, confirm) };
-    setErrors(next);
-    if (next.password || next.confirm) return;
-    setBusy(true);
-    // SIMULATED: the password is not stored or sent anywhere in this build.
-    window.setTimeout(() => {
-      setFinished(true);
-      finishReset();
-      toast("Password updated (demo). You can now log in.", "success");
-      router.replace("/login");
-    }, 500);
-  };
 
   return (
     <div className={styles.card}>
@@ -67,19 +72,10 @@ export default function ResetPasswordPage() {
       <h2 className={styles.cardTitle}>Set a new password</h2>
       <p className={`${styles.cardSubtitle} ${styles.caption}`}>Choose a strong password for your account.</p>
       <form className={styles.form} onSubmit={submit} noValidate>
-        <PasswordField
-          label="New Password"
-          autoComplete="new-password"
-          placeholder="At least 8 characters"
-          value={password}
-          onChange={(e) => {
-            setPassword(e.target.value);
-            if (errors.password) setErrors((x) => ({ ...x, password: null }));
-          }}
-          error={errors.password}
-          labelClassName={styles.label}
-          inputClassName={styles.input}
-        />
+        {formError ? <p className="alert alert-error" role="alert" style={{ padding: "10px 12px", fontSize: 14 }}>{formError}</p> : null}
+        <PasswordField label="New Password" autoComplete="new-password" placeholder="At least 8 characters"
+          value={password} onChange={(e) => { setPassword(e.target.value); if (errors.password) setErrors((x) => ({ ...x, password: null })); }}
+          error={errors.password} labelClassName={styles.label} inputClassName={styles.input} />
         <ul className={styles.reqs} aria-label="Password requirements">
           {passwordChecks(password).map((c) => (
             <li key={c.label} className={c.ok ? styles.reqOk : undefined}>
@@ -88,22 +84,12 @@ export default function ResetPasswordPage() {
             </li>
           ))}
         </ul>
-        <PasswordField
-          label="Confirm New Password"
-          autoComplete="new-password"
-          placeholder="•••••••••••••••"
-          value={confirm}
-          onChange={(e) => {
-            setConfirm(e.target.value);
-            if (errors.confirm) setErrors((x) => ({ ...x, confirm: null }));
-          }}
-          error={errors.confirm}
-          labelClassName={styles.label}
-          inputClassName={styles.input}
-        />
-        <button type="submit" className={styles.submit} disabled={busy}>
-          {busy ? <span className="spinner" /> : null}
-          Reset Password
+        <PasswordField label="Confirm New Password" autoComplete="new-password" placeholder="•••••••••••••••"
+          value={confirm} onChange={(e) => { setConfirm(e.target.value); if (errors.confirm) setErrors((x) => ({ ...x, confirm: null })); }}
+          error={errors.confirm} labelClassName={styles.label} inputClassName={styles.input} />
+        <button type="submit" className={styles.submit} disabled={busy} aria-busy={busy}>
+          {busy ? <span className="spinner" aria-hidden="true" /> : null}
+          {busy ? "Saving…" : "Reset Password"}
         </button>
         <p className={`${styles.switch} ${styles.caption}`}>
           Remember your password? <Link href="/login">Login</Link>

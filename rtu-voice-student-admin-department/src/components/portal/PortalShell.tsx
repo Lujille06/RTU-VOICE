@@ -1,12 +1,13 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname } from "next/navigation";
 import { useCallback, useEffect, useRef, useState, type ReactNode } from "react";
-import { useDemoStore } from "@/lib/demo-store";
-import { homeFor } from "@/lib/routes";
+import { logoutUser } from "@/actions/authActions";
+import type { CurrentUser } from "@/features/auth/guards";
 import { Icon, type IconName } from "../Icon";
 import { Logo } from "../Logo";
+import { CurrentUserProvider } from "./CurrentUserContext";
 import { LogoutDialog } from "./LogoutDialog";
 import { PortalHeader } from "./PortalHeader";
 import { useToast } from "../Toast";
@@ -20,26 +21,17 @@ const NAV: { href: string; label: string; icon: IconName }[] = [
   { href: "/history", label: "History", icon: "clock" },
 ];
 
-/** Layout for every logged-in student page: header, side menu, profile menu, logout dialog, auth guard. */
-export function PortalShell({ children }: { children: ReactNode }) {
-  const { ready, session, logout } = useDemoStore();
-  const router = useRouter();
+/**
+ * Layout for every logged-in student page: header, side menu, profile menu, logout dialog.
+ * The auth and role guard now runs on the server in app/(portal)/layout.tsx (requireRole).
+ */
+export function PortalShell({ user, children }: { user: CurrentUser; children: ReactNode }) {
   const pathname = usePathname();
   const toast = useToast();
 
   const [menuOpen, setMenuOpen] = useState(false);
   const [confirmLogout, setConfirmLogout] = useState(false);
   const menuButtonRef = useRef<HTMLButtonElement>(null);
-  const loggingOut = useRef(false);
-
-  // Simulated auth guard: the real system protects these routes server-side.
-  useEffect(() => {
-    if (ready && !session && !loggingOut.current) {
-      router.replace(`/login?next=${encodeURIComponent(pathname)}`);
-    } else if (ready && session && session.role !== "student") {
-      router.replace(homeFor(session.role));
-    }
-  }, [ready, session, router, pathname]);
 
   // Close menus on navigation.
   useEffect(() => {
@@ -64,24 +56,14 @@ export function PortalShell({ children }: { children: ReactNode }) {
     };
   }, [menuOpen]);
 
-  const doLogout = useCallback(() => {
-    loggingOut.current = true;
+  const doLogout = useCallback(async () => {
     setConfirmLogout(false);
-    logout();
     toast("You have been logged out.", "success");
-    router.replace("/login");
-  }, [logout, router, toast]);
-
-  if (!ready || !session || session.role !== "student") {
-    return (
-      <div className={styles.loading} aria-busy="true">
-        <span className="spinner" /> Loading…
-      </div>
-    );
-  }
+    await logoutUser(); // signs out, clears the cookies, then redirects to /login
+  }, [toast]);
 
   return (
-    <>
+    <CurrentUserProvider user={user}>
       <PortalHeader
         homeHref="/dashboard"
         profileHref="/profile"
@@ -129,6 +111,6 @@ export function PortalShell({ children }: { children: ReactNode }) {
       </main>
 
       <LogoutDialog open={confirmLogout} onClose={() => setConfirmLogout(false)} onConfirm={doLogout} />
-    </>
+    </CurrentUserProvider>
   );
 }

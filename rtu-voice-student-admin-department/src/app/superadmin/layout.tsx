@@ -1,11 +1,14 @@
-import type { Metadata } from "next";
+// src/app/superadmin/layout.tsx
 import type { ReactNode } from "react";
 import { SuperadminShell } from "@/components/admin/SuperadminShell";
+import { CurrentUserProvider } from "@/components/portal/CurrentUserContext";
+import { requireRole } from "@/features/auth/guards";
 
-export const metadata: Metadata = {
-  title: { default: "Super Admin Portal", template: "%s · RTU Voice Super Admin" },
-};
-
-export default function SuperadminLayout({ children }: { children: ReactNode }) {
-  return <SuperadminShell>{children}</SuperadminShell>;
+export default async function SuperadminLayout({ children }: { children: ReactNode }) {
+  const user = await requireRole("superadmin"); 
+  return (
+    <CurrentUserProvider user={user}>
+      <SuperadminShell>{children}</SuperadminShell>
+    </CurrentUserProvider>
+  );
 }
