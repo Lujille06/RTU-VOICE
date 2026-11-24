@@ -64,17 +64,8 @@ export type TrackComplaintState = {
 
 /* ---------------- evidence files ---------------- */
 
-export type EvidenceUrlState = {
-    success: boolean;
-    message: string;
-    url?: string;
-};
-
-// one row returned by get_attachment_for_download
-export type EvidenceFileRow = {
-    out_path: string;
-    out_filename: string | null;
-};
+// These two live in sharedTypes now (they were defined twice). Re-exported so existing imports keep working.
+export type { EvidenceUrlState, EvidenceFileRow } from "@/features/shared/sharedTypes";
 
 /* ---------------- history ---------------- */
 
@@ -130,6 +121,11 @@ export type PublicRow = {
   created_at: string;
   total_count: number;
 };
+
+// what getPublicComplaints returns
+export type PublicComplaintsState =
+  | { success: false; message: string }
+  | { success: true; message: string; total: number; rows: PublicConcern[] };
 
 export const MAX_FILES = 5;
 
