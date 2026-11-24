@@ -55,7 +55,7 @@ export function DepartmentsView({
     <div className="container">
       <div className={s.head}>
         <div className={s.listTitleRow}>
-          <h1 className={s.listTitle}>Departments</h1>
+          <h1 className="page-title">Departments</h1>
           <span className={`${s.countPill} ${s.pillTotal}`} aria-label={`${overallTotal} departments`}>
             {overallTotal}
           </span>

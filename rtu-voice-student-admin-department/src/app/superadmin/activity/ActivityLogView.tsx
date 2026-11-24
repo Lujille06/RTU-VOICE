@@ -52,7 +52,7 @@ export function ActivityLogView({
     <div className="container">
       <div className={s.head}>
         <div className={s.listTitleRow}>
-          <h1 className={s.listTitle}>Activity Log</h1>
+          <h1 className="page-title">Activity Log</h1>
           <span className={`${s.countPill} ${s.pillTotal}`}>{overallTotal}</span>
         </div>
         <p className={s.subtitle}>Assignments, reassignments, returns, rejections and status changes made by administrators and departments.</p>

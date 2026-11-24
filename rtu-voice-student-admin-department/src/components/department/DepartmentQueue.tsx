@@ -297,7 +297,7 @@ export function DepartmentDashboard({
   return (
     <div className="container">
       <div className={s.head}>
-        <h1 className={s.title}>Dashboard</h1>
+        <h1 className="page-title">Dashboard</h1>
         <p className={s.subtitle}>Complaints assigned to your department. Student identities are never shown.</p>
       </div>
 
@@ -366,7 +366,7 @@ export function DepartmentList({
       <div className={s.head}>
         <BackToDashboard href="/department" />
         <div className={s.listTitleRow}>
-          <h1 className={s.listTitle}>{cfg.title}</h1>
+          <h1 className="page-title">{cfg.title}</h1>
           <span className={`${s.countPill} ${cfg.pill}`} aria-label={`${statusTotal} complaints`}>{statusTotal}</span>
         </div>
         <p className={s.subtitle}>{cfg.subtitle}</p>
@@ -422,7 +422,7 @@ export function NeedsAttention({
       <div className={s.head}>
         <BackToDashboard href="/department" />
         <div className={s.listTitleRow}>
-          <h1 className={s.listTitle}>Needs attention</h1>
+          <h1 className="page-title">Needs attention</h1>
           <span className={`${s.countPill} ${s.pillTotal}`} aria-label={`${badge} complaints need attention`}>{badge}</span>
         </div>
         <p className={s.subtitle}>
