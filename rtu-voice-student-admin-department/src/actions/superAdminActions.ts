@@ -459,7 +459,6 @@ export async function getAvailableDepartments(): Promise<
   return { success: true, departments: (depts.data ?? []).filter((d) => !taken.has(d.id)) };
 }
 
-/* ---------------- add department ---------------- */
 
 /* ---------------- add department ---------------- */
 

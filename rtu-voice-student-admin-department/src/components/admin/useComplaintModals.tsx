@@ -83,7 +83,7 @@ export function useComplaintModals(departments: DepartmentOption[]) {
         complaint={d as unknown as TrackedComplaint}
         onClose={close}
         showUpdatesButton={false}
-        allowEvidenceActions={false}
+        allowEvidenceActions={true}
         forStaff
         returnDetails={
           d.current_return
