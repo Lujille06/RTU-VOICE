@@ -160,6 +160,7 @@ export function ProfileForm() {
           </header>
 
           <form className={styles.accountForm} onSubmit={saveAccount} noValidate aria-label="Account details">
+            <h3 className={styles.accountSectionTitle}>Your Account Details</h3>
             <div className={styles.fields}>
               <div className={styles.row2}>
                 <TextField
@@ -258,16 +259,6 @@ export function ProfileForm() {
                     error={pwErrors.next}
                     inputClassName={styles.input}
                   />
-                  {nextPw ? (
-                    <ul className={styles.reqs} aria-label="Password requirements">
-                      {passwordChecks(nextPw).map((c) => (
-                        <li key={c.label} className={c.ok ? styles.reqOk : undefined}>
-                          <Icon name={c.ok ? "check" : "x"} size={12} strokeWidth={2.6} />
-                          {c.label}
-                        </li>
-                      ))}
-                    </ul>
-                  ) : null}
                   <PasswordField
                     label="Confirm New Password"
                     markRequired
@@ -282,6 +273,16 @@ export function ProfileForm() {
                     error={pwErrors.confirm}
                     inputClassName={styles.input}
                   />
+                  {nextPw ? (
+                    <ul className={styles.reqs} aria-label="Password requirements">
+                      {passwordChecks(nextPw).map((c) => (
+                        <li key={c.label} className={c.ok ? styles.reqOk : undefined}>
+                          <Icon name={c.ok ? "check" : "x"} size={12} strokeWidth={2.6} />
+                          {c.label}
+                        </li>
+                      ))}
+                    </ul>
+                  ) : null}
                 </div>
                 <div className={styles.actions}>
                   <button type="button" className={`btn btn-soft ${styles.cancel}`} onClick={cancelPasswordEdit} disabled={savingPw}>

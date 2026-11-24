@@ -67,7 +67,7 @@ export function PortalHeader({
         <button ref={menuButtonRef} type="button" className={styles.menuButton} aria-label={menuLabel} aria-expanded={menuOpen} aria-controls={sidebarId} onClick={onOpenMenu}>
           <Icon name="menu" size={22} strokeWidth={2} />
         </button>
-        <Logo href={homeHref} />
+        <Logo href={homeHref} compact />
       </div>
       {consoleLabel ? (
         <div className={styles.headerRight}>

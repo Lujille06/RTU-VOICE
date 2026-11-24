@@ -1,8 +1,10 @@
 /* History — Figma frame "HOME" (284:2756) */
 .tableWrap {
-  margin: 0 -8px 72px;
+  margin: 0 -8px 40px;
   border-radius: 10px 10px 0 0;
-  overflow: hidden;
+  max-height: min(560px, calc(100svh - 280px));
+  overflow: auto;
+  overscroll-behavior: contain;
 }
 .table {
   width: 100%;
@@ -11,7 +13,10 @@
   font-size: 16px;
 }
 .table thead th {
-  height: 65px;
+  height: 56px;
+  position: sticky;
+  top: 0;
+  z-index: 10;
   padding: 0 18px;
   background: var(--navy-deep);
   color: var(--white);
@@ -23,7 +28,7 @@
   white-space: nowrap;
 }
 .table td {
-  height: 89px;
+  height: 72px;
   padding: 0 18px;
   color: #1f1f1f;
 }
@@ -64,7 +69,7 @@
   font-size: 13px;
 }
 .empty {
-  margin-bottom: 72px;
+  margin-bottom: 40px;
   padding: 56px 24px;
   border: 1px dashed var(--border);
   border-radius: 22px;
@@ -84,6 +89,7 @@
 @media (max-width: 860px) {
   .tableWrap {
     margin: 0 0 48px;
+    max-height: none;
     overflow: visible;
   }
   .table thead {

@@ -54,7 +54,7 @@
 
 .grid {
   list-style: none;
-  margin: 60px 0 0;
+  margin: 36px 0 32px;
   padding: 0;
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -160,7 +160,7 @@
   box-shadow: 0 1px 4px rgba(0, 0, 0, 0.15);
 }
 .demo {
-  margin: 28px 0 64px;
+  margin: 24px 0 40px;
   text-align: center;
 }
 
@@ -171,29 +171,122 @@
   }
 }
 @media (max-width: 640px) {
+  .page :global(.page-head) {
+    padding-top: 20px;
+    padding-bottom: 14px;
+  }
+  .page :global(.page-title) {
+    font-size: 24px;
+    line-height: 1.2;
+  }
+  .page :global(.page-subtitle) {
+    margin-top: 6px;
+    font-size: 14px;
+    line-height: 1.45;
+  }
   .toolbar {
     flex-direction: column;
     align-items: stretch;
+    gap: 12px;
+    margin-top: 0;
   }
   .filters {
+    width: 100%;
     gap: 8px;
   }
   .filterLabel {
     width: 100%;
+    font-size: 14px;
   }
   /* Phones: each filter gets its own full-width line so long category names
      ("Library & Learning Resources") aren't cut off; Clear sits on the right below them. */
-  .filter {
+  .filters .filter {
     flex: 1 1 100%;
     min-width: 0;
+    min-height: 44px;
+    font-size: 14px;
   }
   .clear {
     margin-left: auto;
+    min-height: 36px;
+    font-size: 14px;
+  }
+  .count {
+    font-size: 14px;
+  }
+  .grid {
+    margin: 20px 0 28px;
+    gap: 12px;
   }
   .item {
-    padding: 16px 14px 16px 18px;
+    min-height: 0;
+    padding: 14px 14px 16px 16px;
+    border-left-width: 4px;
+  }
+  .itemTop {
+    align-items: flex-start;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  .category {
+    flex: 1 1 11rem;
+    min-width: 0;
+    font-size: 12px;
+    line-height: 1.4;
+    overflow-wrap: anywhere;
   }
   .itemTitle {
-    font-size: 18px;
+    margin-top: 10px;
+    font-size: 17px;
+    line-height: 1.25;
+  }
+  .summary {
+    margin-top: 8px;
+    font-size: 13px;
+    line-height: 1.5;
+  }
+  .date {
+    padding-top: 10px;
+    font-size: 11px;
+  }
+  .empty {
+    margin-top: 24px;
+    padding: 32px 16px;
+    border-radius: 16px;
+  }
+  .demo,
+  .pager {
+    margin-bottom: 32px;
+  }
+  .pager {
+    gap: 6px;
+    margin-top: 28px;
+  }
+  .pageNum,
+  .pageArrow {
+    min-width: 36px;
+    height: 36px;
+    font-size: 14px;
+  }
+}
+
+@media (max-width: 380px) {
+  .page :global(.page-title) {
+    font-size: 22px;
+  }
+  .page :global(.page-subtitle) {
+    font-size: 13px;
+  }
+  .grid {
+    gap: 10px;
+  }
+  .item {
+    padding: 12px 12px 14px 14px;
+  }
+  .itemTitle {
+    font-size: 16px;
+  }
+  .summary {
+    font-size: 12px;
   }
 }

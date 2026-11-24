@@ -1,7 +1,7 @@
 .card {
   background: var(--white);
-  border-radius: 18px;
-  box-shadow: 0 10px 40px -18px rgba(23, 33, 59, 0.25);
+  border-radius: var(--radius-card);
+  box-shadow: var(--shadow-card);
   padding: 22px 24px 24px;
   min-width: 0;
 }

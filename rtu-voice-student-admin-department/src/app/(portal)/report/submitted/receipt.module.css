@@ -1,9 +1,9 @@
 /* Success / Tracking ID receipt — Figma frame "Frame" (253:1493) */
 .card {
-  max-width: 745px;
-  margin: 116px auto 80px;
-  padding: 48px 38px 40px;
-  border-radius: 22px;
+  max-width: 640px;
+  margin: 64px auto 48px;
+  padding: 32px 32px 28px;
+  border-radius: var(--radius-card);
   border: 1px solid var(--border);
   display: flex;
   flex-direction: column;
@@ -13,8 +13,8 @@
 .check {
   display: grid;
   place-items: center;
-  width: 100px;
-  height: 100px;
+  width: 76px;
+  height: 76px;
   border-radius: 50%;
   background: var(--resolved-bg);
   color: var(--resolved-fg);
@@ -24,16 +24,16 @@
   color: var(--blue);
 }
 .title {
-  margin-top: 28px;
-  font-family: var(--font-inter);
-  font-weight: 600;
-  font-size: 34px;
+  margin-top: 20px;
+  font-family: var(--font-montserrat);
+  font-weight: 700;
+  font-size: 26px;
   line-height: 1.1;
 }
 .status {
-  margin-top: 10px;
+  margin-top: 8px;
   font-family: var(--font-inter);
-  font-size: 18px;
+  font-size: 15px;
   color: var(--text-muted);
 }
 .badge {
@@ -42,13 +42,13 @@
   font-size: 11px;
 }
 .idBox {
-  margin-top: 22px;
+  margin-top: 18px;
   width: 100%;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 16px;
-  padding: 26px 24px 26px 28px;
+  gap: 12px;
+  padding: 18px 20px;
   border: 2px dashed #b9bfd0;
   border-radius: 12px;
   background: var(--surface-soft);
@@ -56,14 +56,14 @@
 }
 .idLabel {
   font-family: var(--font-inter);
-  font-size: 17px;
+  font-size: 14px;
   color: #5b5b5b;
 }
 .idValue {
-  margin-top: 10px;
+  margin-top: 6px;
   font-family: var(--font-inter);
   font-weight: 500;
-  font-size: 32px;
+  font-size: 26px;
   letter-spacing: 0.5px;
   color: var(--blue);
 }
@@ -72,46 +72,46 @@
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  height: 43px;
-  padding: 0 26px;
+  height: 40px;
+  padding: 0 20px;
   border: 0;
   border-radius: 999px;
   background: var(--blue);
   color: var(--white);
   font-family: var(--font-inter);
   font-weight: 700;
-  font-size: 15px;
+  font-size: 14px;
   box-shadow: 0 4px 10px -2px rgba(16, 68, 150, 0.45);
 }
 .copy:hover {
   background: #0d3a80;
 }
 .save {
-  margin-top: 30px;
+  margin-top: 20px;
   width: 100%;
   text-align: left;
   align-items: center;
   font-size: 14px;
-  padding: 12px 22px;
+  padding: 10px 16px;
 }
 .buttons {
-  margin-top: 22px;
+  margin-top: 18px;
   display: flex;
   justify-content: center;
   gap: 12px;
   flex-wrap: wrap;
 }
 .btn {
-  min-width: 207px;
-  min-height: 57px;
+  min-width: 176px;
+  min-height: 48px;
   border-radius: 10px;
   font-family: var(--font-inter);
   font-weight: 700;
-  font-size: 13px;
+  font-size: 12px;
 }
 .footnote {
-  margin-top: 30px;
-  font-size: 13px;
+  margin-top: 20px;
+  font-size: 12px;
   color: #5b5b5b;
 }
 .demo {
@@ -120,15 +120,15 @@
 
 @media (max-width: 640px) {
   .card {
-    margin: 28px auto 48px;
-    padding: 32px 18px 28px;
+    margin: 24px auto 36px;
+    padding: 24px 16px 22px;
   }
   .check {
-    width: 76px;
-    height: 76px;
+    width: 64px;
+    height: 64px;
   }
   .title {
-    font-size: 26px;
+    font-size: 22px;
   }
   .status {
     font-size: 15px;
@@ -136,10 +136,10 @@
   .idBox {
     flex-direction: column;
     align-items: flex-start;
-    padding: 20px;
+    padding: 16px;
   }
   .idValue {
-    font-size: 28px;
+    font-size: 22px;
   }
   .copy {
     width: 100%;

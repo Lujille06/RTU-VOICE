@@ -97,7 +97,7 @@ export function PublicDashboard({
   };
 
   return (
-    <div className="container">
+    <div className={`container ${styles.page}`}>
       <div className="page-head">
         <h1 className="page-title">Public Dashboard</h1>
         <p className="page-subtitle">

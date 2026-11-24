@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState, type FormEvent } from "react";
+import { createPortal } from "react-dom";
 import { addComplaintUpdate, getComplaintDetailsDepartment, returnComplaint, updateComplaintStatus } from "@/actions/departmentActions";
 import { getComplaintUpdates } from "@/actions/sharedActions";
 import { formatMonthDay, formatShortDate, formatTime } from "@/lib/format";
@@ -84,7 +85,9 @@ function RowActions({
 }) {
   const [menuOpen, setMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
+  const menuElementRef = useRef<HTMLDivElement>(null);
   const menuButtonRef = useRef<HTMLButtonElement>(null);
+  const [menuPosition, setMenuPosition] = useState<{ top: number; left: number } | null>(null);
   const next = nextDepartmentStatus(c.status);
   const locked = c.status === "Resolved" || !next;
   const menuId = `department-actions-${c.trackingId.toLowerCase()}`;
@@ -98,19 +101,43 @@ function RowActions({
       }
     };
     const onPointerDown = (event: PointerEvent) => {
-      if (event.target instanceof Node && !menuRef.current?.contains(event.target)) setMenuOpen(false);
+      if (
+        event.target instanceof Node &&
+        !menuRef.current?.contains(event.target) &&
+        !menuElementRef.current?.contains(event.target)
+      ) setMenuOpen(false);
     };
+    const closeOnViewportChange = () => setMenuOpen(false);
     document.addEventListener("keydown", onKeyDown);
     document.addEventListener("pointerdown", onPointerDown);
+    window.addEventListener("resize", closeOnViewportChange);
+    document.addEventListener("scroll", closeOnViewportChange, true);
     return () => {
       document.removeEventListener("keydown", onKeyDown);
       document.removeEventListener("pointerdown", onPointerDown);
+      window.removeEventListener("resize", closeOnViewportChange);
+      document.removeEventListener("scroll", closeOnViewportChange, true);
     };
   }, [menuOpen]);
 
   useEffect(() => {
-    if (menuOpen) menuRef.current?.querySelector<HTMLButtonElement>('[role="menuitem"]')?.focus();
+    if (menuOpen) menuElementRef.current?.querySelector<HTMLButtonElement>('[role="menuitem"]')?.focus();
   }, [menuOpen]);
+
+  const openMenu = () => {
+    if (!menuButtonRef.current) return;
+    const rect = menuButtonRef.current.getBoundingClientRect();
+    const menuWidth = 218;
+    const menuHeight = 166;
+    const gutter = 12;
+    const left = Math.max(gutter, Math.min(rect.right - menuWidth, window.innerWidth - menuWidth - gutter));
+    const below = rect.bottom + 6;
+    const top = below + menuHeight <= window.innerHeight - gutter
+      ? below
+      : Math.max(gutter, rect.top - menuHeight - 6);
+    setMenuPosition({ top, left });
+    setMenuOpen((open) => !open);
+  };
 
   return (
     <div className={d.rowActions}>
@@ -143,16 +170,19 @@ function RowActions({
           aria-haspopup="menu"
           aria-expanded={menuOpen}
           aria-controls={menuId}
-          onClick={() => setMenuOpen((open) => !open)}
+          onClick={openMenu}
         >
           <span aria-hidden="true">⋯</span>
         </button>
-        {menuOpen ? (
+        {menuOpen && menuPosition && typeof document !== "undefined"
+          ? createPortal(
           <div
+            ref={menuElementRef}
             className={d.actionMenu}
             id={menuId}
             role="menu"
             aria-label={`Actions for ${c.trackingId}`}
+            style={{ position: "fixed", top: menuPosition.top, left: menuPosition.left, right: "auto" }}
             onKeyDown={(event) => {
               const items = Array.from(event.currentTarget.querySelectorAll<HTMLButtonElement>('[role="menuitem"]'));
               const index = items.indexOf(document.activeElement as HTMLButtonElement);
@@ -195,8 +225,10 @@ function RowActions({
               <span><Icon name="undo" size={15} strokeWidth={2} /> Return to Admin</span>
               {!canReturn ? <small>{c.status === "Resolved" ? "Resolved — locked" : "In progress — can't be returned"}</small> : null}
             </button>
-          </div>
-        ) : null}
+          </div>,
+          document.body,
+          )
+          : null}
       </div>
     </div>
   );

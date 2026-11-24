@@ -7,21 +7,21 @@
   align-items: center;
   justify-content: space-between;
   gap: 12px;
-  padding: 0 69px 0 45px;
+  padding: 0 clamp(1.25rem, 4vw, 2.75rem);
   background: var(--white);
   border-bottom: 1px solid #ececec;
 }
 .headerLeft {
   display: flex;
   align-items: center;
-  gap: 21px;
+  gap: 16px;
   min-width: 0;
 }
 .menuButton {
   display: grid;
   place-items: center;
-  width: 44px;
-  height: 44px;
+  width: 40px;
+  height: 40px;
   flex: none;
   border: 1px solid var(--border);
   border-radius: 12px;
@@ -34,12 +34,12 @@
 .headerRight {
   display: flex;
   align-items: center;
-  gap: 18px;
+  gap: 14px;
 }
 .console {
   font-family: var(--font-inter);
   font-weight: 600;
-  font-size: 14px;
+  font-size: 13px;
   color: var(--navy);
   white-space: nowrap;
 }
@@ -70,8 +70,8 @@
 .avatar {
   display: grid;
   place-items: center;
-  width: 44px;
-  height: 44px;
+  width: 40px;
+  height: 40px;
   border-radius: 50%;
   background: var(--navy);
   color: var(--white);

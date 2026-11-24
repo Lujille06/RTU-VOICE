@@ -2,13 +2,13 @@
 
 /* ---------- Page heads ---------- */
 .head {
-  padding-top: 38px;
-  padding-bottom: 26px;
+  padding-top: clamp(2rem, 4vw, 2.75rem);
+  padding-bottom: 1.5rem;
 }
 .title {
-  font-family: var(--font-inter);
-  font-weight: 700;
-  font-size: 32px;
+  font-family: var(--font-montserrat);
+  font-weight: 800;
+  font-size: clamp(1.875rem, 3vw, 2.25rem);
   line-height: 1.15;
   color: var(--black);
 }
@@ -74,10 +74,10 @@
 /* ---------- Panel (white card holding tabs / table) ---------- */
 .panel {
   background: var(--white);
-  border-radius: 22px;
-  box-shadow: 0 10px 40px -18px rgba(23, 33, 59, 0.25);
-  padding: 22px 25px 26px;
-  margin-bottom: 64px;
+  border-radius: var(--radius-card);
+  box-shadow: var(--shadow-panel);
+  padding: 1.5rem;
+  margin-bottom: 3rem;
 }
 
 /* ---------- Toolbar ---------- */
@@ -142,7 +142,9 @@
 /* ---------- Table ---------- */
 .tableWrap {
   width: 100%;
-  overflow-x: auto; /* wide tables scroll inside the panel, never the page */
+  max-height: min(560px, calc(100svh - 280px));
+  overflow: auto;
+  overscroll-behavior: contain;
 }
 .table {
   width: 100%;
@@ -153,6 +155,9 @@
 }
 .table thead th {
   height: 45px;
+  position: sticky;
+  top: 0;
+  z-index: 10;
   padding: 0 12px;
   background: var(--navy-deep);
   color: var(--white);
@@ -171,8 +176,8 @@
   border-radius: 0 10px 10px 0;
 }
 .table td {
-  height: 64px;
-  padding: 8px 12px;
+  height: 60px;
+  padding: 10px 12px;
   color: #17213b;
   vertical-align: middle;
 }
@@ -333,8 +338,8 @@
 .rowSelect {
   width: 196px;
   min-width: 0;
-  height: 38px;
-  min-height: 38px;
+  height: 44px;
+  min-height: 44px;
   padding-left: 12px;
   border: 1px solid #c9cfdc;
   border-radius: 8px;
@@ -342,7 +347,7 @@
   color: #17213b;
 }
 .reject {
-  height: 34px;
+  height: 44px;
   padding: 0 18px;
   border: 0;
   border-radius: 6px;
@@ -500,6 +505,10 @@
   }
 }
 @media (max-width: 960px) {
+  .tableWrap {
+    max-height: none;
+    overflow: visible;
+  }
   .table thead {
     position: absolute;
     width: 1px;
