@@ -159,3 +159,22 @@
     min-height: 0;
   }
 }
+
+@media (max-width: 767px) {
+  :global(#main) .actionText {
+    margin-top: 6px;
+    margin-bottom: 8px;
+    font-size: 0.875rem !important;
+    line-height: 1.5 !important;
+  }
+  :global(#main) .recentSub {
+    margin-top: 8px;
+    font-size: 0.75rem !important;
+    line-height: 1.4 !important;
+  }
+  :global(#main) .empty {
+    margin-top: 20px;
+    font-size: 0.875rem !important;
+    line-height: 1.45 !important;
+  }
+}

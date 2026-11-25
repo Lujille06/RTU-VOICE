@@ -626,10 +626,12 @@
   .updateNote {
     padding: 12px;
     border-radius: 12px;
-    font-size: 13px;
-    line-height: 1.5;
     text-align: left;
     overflow-wrap: anywhere;
+  }
+  .updateMsg {
+    font-size: 13px;
+    line-height: 1.5;
   }
   .updateMsgCollapsed {
     max-height: calc(10.5em + 1.5rem + 2px);
@@ -638,8 +640,11 @@
     min-height: 36px;
   }
   .updateNote {
-    gap: 10px;
+    padding: 10px;
+    gap: 8px;
     align-items: flex-start;
+    font-size: 12px;
+    line-height: 1.45;
   }
   .updateNote svg {
     width: 18px;
@@ -701,5 +706,16 @@
     overflow: hidden;
     clip-path: inset(50%);
     white-space: nowrap;
+  }
+}
+
+@media (max-width: 767px) {
+  .empty {
+    gap: 8px;
+    padding: 28px 16px;
+  }
+  :global(#main) .empty p {
+    font-size: 0.875rem !important;
+    line-height: 1.45 !important;
   }
 }

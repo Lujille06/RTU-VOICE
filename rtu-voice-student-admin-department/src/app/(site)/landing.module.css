@@ -3,7 +3,7 @@
 /* ---------- Hero ---------- */
 .hero {
   position: relative;
-  min-height: 700px;
+  min-height: max(700px, calc(100svh - var(--header-h)));
   display: flex;
   align-items: center;
   justify-content: center;
@@ -773,7 +773,7 @@
 
 @media (min-width: 768px) and (max-width: 1023px) {
   .hero {
-    min-height: 70svh;
+    min-height: max(700px, calc(100svh - var(--header-h)));
   }
   .heroTitle {
     font-size: 3rem;
@@ -966,25 +966,25 @@
 @media (max-width: 767px) {
   .hero {
     box-sizing: border-box;
-    min-height: calc(100svh - 3.5rem);
+    min-height: max(36.25rem, calc(100svh - 3.5rem));
     align-items: flex-end;
-    justify-content: flex-start;
-    padding: calc(4.75rem + env(safe-area-inset-top)) 1.25rem calc(4.5rem + env(safe-area-inset-bottom));
-    text-align: left;
+    justify-content: center;
+    padding: calc(4.75rem + env(safe-area-inset-top)) 1.25rem calc(4rem + env(safe-area-inset-bottom));
     background:
       linear-gradient(180deg, rgba(8, 20, 55, 0.48) 0%, rgba(8, 20, 55, 0.68) 100%),
       url("/images/campus-hero.jpg") center / cover no-repeat;
+    text-align: center;
   }
   .heroInner {
     width: 100%;
     max-width: 28rem;
     margin: 0 auto;
-    text-align: left;
+    text-align: center;
   }
   .heroTitle {
     max-width: 24rem;
-    margin-bottom: 1rem;
-    text-align: left;
+    margin: 0 auto 1rem;
+    text-align: center;
     font-size: clamp(2rem, 9vw, 2.75rem) !important;
     line-height: 1.06 !important;
     letter-spacing: -0.025em;
@@ -996,13 +996,6 @@
   .yellow {
     color: #ffd451;
   }
-  .heroText {
-    max-width: 24rem;
-    margin: 0 0 1.25rem;
-    color: #e2e8f0;
-    font-size: 0.9375rem !important;
-    line-height: 1.6 !important;
-  }
   .heroActions {
     width: 100%;
     flex-direction: column;
@@ -1010,58 +1003,19 @@
     gap: 0.625rem;
     margin-top: 0;
   }
+  .heroText {
+    max-width: 24rem;
+    margin: 0 auto 1.25rem;
+    color: #e2e8f0;
+    text-align: center;
+    font-size: 0.9375rem !important;
+    line-height: 1.6 !important;
+  }
   .heroBtn {
     box-sizing: border-box;
     width: 100%;
     min-height: 3rem;
     height: auto;
-    padding: 0.75rem 1rem;
-    font-size: 0.9375rem;
-  }
-  .heroBtnGhost {
-    border: 1px solid rgba(255, 255, 255, 0.72);
-    background: rgba(255, 255, 255, 0.08);
-    backdrop-filter: blur(8px);
-  }
-}
-
-@media (max-width: 767px) {
-  .hero {
-    box-sizing: border-box;
-    min-height: max(36.25rem, calc(100svh - 3.5rem));
-    align-items: flex-end;
-    justify-content: flex-start;
-    padding: calc(4.75rem + env(safe-area-inset-top)) 0.625rem calc(4rem + env(safe-area-inset-bottom));
-    text-align: left;
-  }
-  .heroInner,
-  .heroTitle,
-  .heroText {
-    text-align: left;
-  }
-  .heroTitle,
-  .heroText {
-    margin-right: 0;
-    margin-left: 0;
-  }
-  .heroTitle {
-    max-width: 24rem;
-    margin-bottom: 1rem;
-    font-size: clamp(2rem, 9vw, 2.75rem) !important;
-    line-height: 1.06 !important;
-  }
-  .heroActions {
-    align-items: stretch;
-    gap: 0.625rem;
-  }
-  .heroText {
-    max-width: 24rem;
-    margin-bottom: 1.25rem;
-    font-size: 0.9375rem !important;
-    line-height: 1.6 !important;
-  }
-  .heroBtn {
-    min-height: 3rem;
     padding: 0.75rem 1rem;
     font-size: 0.9375rem;
   }
@@ -1082,5 +1036,26 @@
   .cta,
   :global(#how-to-submit) {
     padding: 2.25rem var(--gutter);
+  }
+}
+
+@media (max-width: 390px) {
+  .hero {
+    justify-content: flex-start;
+    text-align: left;
+  }
+  .heroInner,
+  .heroTitle,
+  .heroText {
+    text-align: left;
+  }
+  .heroInner {
+    margin-right: 0;
+    margin-left: 0;
+  }
+  .heroTitle,
+  .heroText {
+    margin-right: 0;
+    margin-left: 0;
   }
 }

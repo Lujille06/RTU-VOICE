@@ -102,9 +102,9 @@ export function PublicDashboard({
       <div className="page-head">
         <h1 className="page-title">Public Dashboard</h1>
         <p className="page-subtitle">
-          Logged-in students can view complaints their authors chose to share. Entries show an AI-written title and
-          summary, category, status, and date—not the student’s name, original text, or priority. The title and summary
-          are written to remove personal details, but may not remove every identifying detail.
+          Only logged-in students see opt-in complaints: an AI-written title and summary, category, status, and
+          date—not the name, original text, or priority. The title and summary are written to remove personal details
+          but may still identify someone.
         </p>
       </div>
 
