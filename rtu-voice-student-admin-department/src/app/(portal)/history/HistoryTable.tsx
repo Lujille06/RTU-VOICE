@@ -52,8 +52,7 @@ export function HistoryTable({
         <h1 className="page-title">History</h1>
         <p className="page-subtitle">
           History lists complaints that remain linked to your account. Rejected or spam complaints are permanently deleted
-          after 30 days. Resolved complaints are anonymized one year after resolution, removing their link to your account.
-          See the <Link href="/privacy">Privacy Notice</Link> for details.
+          after 30 days. Resolved complaints are anonymized one year after resolution.
         </p>
       </div>
 

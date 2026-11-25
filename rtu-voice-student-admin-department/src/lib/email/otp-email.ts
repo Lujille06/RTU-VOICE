@@ -1,6 +1,8 @@
 import "server-only";
+import { readFile } from "node:fs/promises";
+import path from "node:path";
 import { Resend } from "resend";
-import { buildOtpEmail } from "./template";
+import { buildOtpEmail, OTP_LOGO_CONTENT_ID } from "./template";
 
 type MailResult = { success: true } | { success: false; error: string };
 type OtpPurpose = "registration" | "password_reset";
@@ -13,8 +15,8 @@ function requireEnv(name: string): string {
 
 const resend = new Resend(requireEnv("RESEND_API_KEY"));
 const MAIL_FROM = requireEnv("MAIL_FROM");             
-const SITE_URL = requireEnv("NEXT_PUBLIC_SITE_URL");
 const LOG_OTP = process.env.LOG_OTP === "true";      
+const LOGO_PATH = path.join(process.cwd(), "public", "images", "rtu-voice-logo.png");
 
 async function sendOtpEmail(
     purpose: OtpPurpose,
@@ -27,11 +29,8 @@ async function sendOtpEmail(
     }
 
     try {
-        const { subject, html, text } = buildOtpEmail(purpose, {
-            name,
-            otp: otpCode,
-            logoUrl: `${SITE_URL}/logo.png`,
-        });
+        const { subject, html, text } = buildOtpEmail(purpose, { name, otp: otpCode });
+        const logo = await readFile(LOGO_PATH);
 
         const { error } = await resend.emails.send({
             from: MAIL_FROM,
@@ -39,6 +38,14 @@ async function sendOtpEmail(
             subject,
             html,
             text,
+            attachments: [
+                {
+                    filename: "rtu-voice-logo.png",
+                    content: logo,
+                    contentType: "image/png",
+                    contentId: OTP_LOGO_CONTENT_ID,
+                },
+            ],
         });
 
         if (error) {

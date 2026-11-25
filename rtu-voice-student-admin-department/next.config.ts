@@ -17,6 +17,9 @@ const nextConfig: NextConfig = {
   images: {
     unoptimized: true,
   },
+  outputFileTracingIncludes: {
+    "/*": ["./public/images/rtu-voice-logo.png"],
+  },
 };
 
 export default nextConfig;
