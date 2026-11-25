@@ -17,7 +17,7 @@ export function Footer() {
         </nav>
         <div className={styles.contact}>
           <span className={styles.heading}>Contact</span>
-          <a href="mailto:RTUVoice@gmail.com">RTUVoice@gmail.com</a>
+          <span>[TO CONFIRM]</span>
           <span className={styles.built}>Built by Group 4Voices, BSIT</span>
         </div>
       </div>
