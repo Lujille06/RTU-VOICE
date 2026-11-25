@@ -12,7 +12,7 @@ departments, and the superadmin.
   statistics.
 - **Departments** work on their assigned concerns, update statuses, post messages for students,
   and view department-specific statistics.
-- **Superadmin** manages staff accounts and departments and reviews the activity log.
+- **Superadmin** manages staff and student accounts and departments and reviews the activity log.
 
 The application uses Next.js App Router, React, TypeScript, CSS Modules, Supabase Auth and
 PostgreSQL RPCs, Resend for email, and OpenRouter for optional AI-assisted complaint analysis.
@@ -94,7 +94,7 @@ Security (RLS). Never prefix it with `NEXT_PUBLIC_`.
 | Student | `/dashboard`, `/report`, `/track`, `/history`, `/public-dashboard`, `/profile` | Submit and follow concerns, manage a profile, and browse shared summaries |
 | Central admin | `/admin`, `/admin/complaints`, `/admin/assigned`, `/admin/in-progress`, `/admin/resolved`, `/admin/statistics`, `/admin/admins`, `/admin/profile` | Review and manage complaints, view statistics, and view administrator accounts |
 | Department | `/department`, `/department/needs-attention`, `/department/complaints`, `/department/assigned`, `/department/in-progress`, `/department/resolved`, `/department/statistics`, `/department/profile` | Work on complaints assigned to the signed-in department |
-| Superadmin | `/superadmin`, `/superadmin/departments`, `/superadmin/activity`, `/superadmin/profile` | Manage staff accounts and departments and review activity |
+| Superadmin | `/superadmin`, `/superadmin/students`, `/superadmin/departments`, `/superadmin/activity`, `/superadmin/profile` | Manage staff and student accounts, departments, and review activity |
 
 Students can register using an `@rtu.edu.ph` email address and verify it with an emailed one-time
 code. Staff accounts are provisioned by the superadmin; they do not register through the student

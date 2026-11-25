@@ -33,6 +33,8 @@ import {
   type StaffAccountFilters,
   type StaffAccountListData,
   type StaffAccountRow,
+  type StudentAccountFilters,
+  type StudentAccountRow,
 } from "@/features/superAdmin/superAdminTypes";
 
 /* ---------------- helpers (not exported) ---------------- */
@@ -109,6 +111,38 @@ export async function getStaffAccounts(
     total: raw.total,
     overallTotal: raw.overall_total,
     roleCounts: raw.role_counts,
+    page,
+    totalPages: totalPagesOf(raw.total),
+  };
+}
+
+export async function getStudentAccounts(
+  opts: StudentAccountFilters = {}
+): Promise<ActionResult<PagedData<StudentAccountRow>>> {
+  const me = await getCurrentUser();
+  if (!isSuperAdmin(me)) return { success: false, message: "Not allowed." };
+
+  const page = toPage(opts.page);
+
+  const supabase = await createClient();
+  const { data, error } = await supabase.rpc("get_student_accounts", {
+    p_search: cleanSearch(opts.search),
+    p_is_active: optBool(opts.isActive),
+    ...pageParams(page),
+  });
+
+  if (error || !data) {
+    console.error("[get_student_accounts] rpc failed:", error);
+    return { success: false, message: "Couldn't load student accounts. Please try again." };
+  }
+
+  const raw = data as { total: number; overall_total: number; rows: StudentAccountRow[] };
+
+  return {
+    success: true,
+    rows: raw.rows,
+    total: raw.total,
+    overallTotal: raw.overall_total,
     page,
     totalPages: totalPagesOf(raw.total),
   };
