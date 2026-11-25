@@ -30,7 +30,10 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { analyzeComplaint } from "@/features/ai/analyzeComplaint";
 import { sendAssignmentEmail, sendReassignmentEmails } from "@/lib/email/notification";
 import { rejectComplaint, assignComplaint } from "@/actions/adminActions";
-import { getComplaintDetailsDepartment, updateComplaintStatus } from "@/actions/departmentActions";
+import {
+  getComplaintDetailsDepartment,
+  updateComplaintStatus,
+} from "@/actions/departmentActions";
 /* ---------------- helpers ---------------- */
 // Confirm these match getCurrentUser().role in your code.
 const ROLE = {
@@ -105,7 +108,11 @@ describe("role gating: gate runs before any DB access", () => {
     as(ROLE.department);
     (createClient as any).mockResolvedValue({
       rpc: vi.fn().mockResolvedValue({
-        data: { tracking_id: "TRK-001", ai_title: "Private AI title", ai_summary: "Private AI summary" },
+        data: {
+          tracking_id: "TRK-001",
+          ai_title: "Private AI title",
+          ai_summary: "Private AI summary",
+        },
         error: null,
       }),
     });
