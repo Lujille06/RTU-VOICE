@@ -37,8 +37,8 @@
   align-items: center;
   justify-content: center;
   gap: 8px;
-  min-height: 170px;
-  padding: 24px;
+  min-height: 140px;
+  padding: 18px;
   border: 2px dashed #b9bfd0;
   border-radius: 10px;
   background: var(--surface-soft);
@@ -212,15 +212,52 @@
     padding: 26px 18px 28px;
     gap: 22px;
   }
-  .optOut {
-    padding: 16px;
-    gap: 12px;
-  }
   .buttons {
     flex-direction: column-reverse;
   }
   .btn,
   .buttons .btn:last-child {
     width: 100%;
+  }
+}
+
+@media (max-width: 767px) {
+  .optOut {
+    padding: 12px;
+    gap: 10px;
+  }
+  .optOutTitle {
+    font-size: 14px;
+    line-height: 1.4;
+  }
+  .optOutText {
+    margin-top: 4px;
+    font-size: 12px;
+    line-height: 1.45;
+  }
+  .drop {
+    min-height: 110px;
+    gap: 6px;
+    padding: 12px;
+  }
+  .dropIcon {
+    width: 20px;
+    height: 20px;
+  }
+  .dropText {
+    font-size: 14px;
+  }
+  .dropRules {
+    line-height: 1.4;
+  }
+  :global(#main) .shield {
+    gap: 8px;
+    padding: 10px 12px;
+    font-size: 0.75rem !important;
+    line-height: 1.45 !important;
+  }
+  .shield svg {
+    width: 16px;
+    height: 16px;
   }
 }

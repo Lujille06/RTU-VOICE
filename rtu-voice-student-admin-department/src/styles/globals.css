@@ -815,6 +815,66 @@ main h4 {
   padding: 0 22px;
 }
 
+@media (max-width: 767px) {
+  #main .page-subtitle {
+    margin-top: 6px;
+    font-size: 0.875rem !important;
+    line-height: 1.45 !important;
+  }
+  #main [class*="subtitle"] {
+    font-size: 0.875rem !important;
+    line-height: 1.45 !important;
+  }
+  #main [class*="hint"]:not(.field-hint),
+  #main [class*="footnote"],
+  #main [class*="cardSub"],
+  #main [class*="note"] {
+    font-size: 0.75rem !important;
+    line-height: 1.4 !important;
+  }
+  #main .alert {
+    gap: 8px;
+    padding: 10px 12px;
+    font-size: 0.75rem;
+    line-height: 1.45;
+  }
+  #main .alert p {
+    margin: 0;
+    font-size: 0.75rem !important;
+    line-height: 1.45 !important;
+  }
+  #main .alert > svg {
+    width: 16px;
+    height: 16px;
+  }
+  #main .field-hint {
+    font-size: 0.6875rem;
+    line-height: 1.4;
+  }
+  #main .field-error,
+  #main p[role="alert"] {
+    font-size: 0.75rem !important;
+    line-height: 1.4 !important;
+  }
+  #main p[role="alert"] {
+    margin: 6px 0;
+  }
+  [role="dialog"] [class*="subtitle"] {
+    font-size: 0.8125rem !important;
+    line-height: 1.4 !important;
+  }
+  [role="dialog"] .alert,
+  [role="dialog"] .alert p,
+  [role="dialog"] .field-error,
+  [role="dialog"] [role="alert"],
+  [role="dialog"] [class*="help"],
+  [role="dialog"] [class*="note"],
+  [role="dialog"] [class*="warn"] {
+    font-size: 0.75rem !important;
+    line-height: 1.4 !important;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,

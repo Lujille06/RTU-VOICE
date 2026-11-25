@@ -150,3 +150,15 @@
     min-width: 0;
   }
 }
+
+@media (max-width: 767px) {
+  :global(#main) .status {
+    font-size: 0.8125rem !important;
+    line-height: 1.45 !important;
+  }
+  :global(#main) .footnote {
+    margin-top: 12px;
+    font-size: 0.75rem !important;
+    line-height: 1.4 !important;
+  }
+}
