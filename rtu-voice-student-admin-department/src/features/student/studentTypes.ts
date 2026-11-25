@@ -130,7 +130,7 @@ export type PublicComplaintsState =
 export const MAX_FILES = 5;
 
 export const TITLE_MAX = 100;
-export const DESCRIPTION_MAX = 2000;
+export const DESCRIPTION_MAX = 500;
 export const MAX_TOTAL_BYTES = 5 * 1024 * 1024; // 5 MB total per submission
 
 // allowed types -> the extension we store (we never use the uploaded file name in the path).

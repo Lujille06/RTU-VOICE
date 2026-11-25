@@ -7,7 +7,7 @@ const MODELS = [
 ];
 
 const PRIORITIES = ["high", "mid", "low"] as const;
-const MAX_DESCRIPTION = 2000;
+const MAX_DESCRIPTION = 500;
 
 const PER_MODEL_MS = 15_000;
 const TOTAL_MS = 35_000;

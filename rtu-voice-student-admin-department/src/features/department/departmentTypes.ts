@@ -8,7 +8,7 @@ import type { SlaFields } from "@/features/shared/sharedTypes";
 export const NEXT_STATUSES = ["in_progress", "resolved"] as const;
 export type NextStatus = (typeof NEXT_STATUSES)[number];
 
-export const MAX_REASON = 2000;
+export const MAX_REASON = 500;
 export const MAX_UPDATE_MESSAGE = 500; // the old check enforced 500 but its error text said 2000; change this if 2000 was intended
 
 // status ids: 2 assigned, 3 in_progress, 4 resolved
