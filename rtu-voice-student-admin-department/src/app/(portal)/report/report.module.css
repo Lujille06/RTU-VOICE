@@ -144,10 +144,14 @@
   background: var(--surface-soft);
   cursor: pointer;
 }
-.optOut > input {
+.optOut > input.checkbox {
+  box-sizing: border-box;
   flex: 0 0 20px;
   width: 20px;
   height: 20px;
+  min-width: 20px;
+  min-height: 20px;
+  aspect-ratio: 1;
   margin-top: 2px;
 }
 .optOut > span {

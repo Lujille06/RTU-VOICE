@@ -7,8 +7,9 @@ type Purpose = "registration" | "password_reset";
 type OtpEmailParams = {
   name: string;
   otp: string;
-  logoUrl: string; // absolute public URL, e.g. https://your-app.vercel.app/logo.png
 };
+
+export const OTP_LOGO_CONTENT_ID = "rtu-voice-logo";
  
 const COPY: Record<
   Purpose,
@@ -36,7 +37,7 @@ const COPY: Record<
   },
 };
  
-function render(purpose: Purpose, { name, otp,  logoUrl }: OtpEmailParams) {
+function render(purpose: Purpose, { name, otp }: OtpEmailParams) {
   const c = COPY[purpose];
   const safeName = escapeHtml(name);
   const safeOtp = escapeHtml(otp);
@@ -65,7 +66,7 @@ function render(purpose: Purpose, { name, otp,  logoUrl }: OtpEmailParams) {
         <tr><td style="padding:24px 32px 20px 32px;border-bottom:3px solid #f5b800;">
           <table role="presentation" cellpadding="0" cellspacing="0" border="0"><tr>
             <td valign="middle" style="padding-right:14px;">
-              <img src="${logoUrl}" width="56" height="56" alt="RTU Voice" style="display:block;border:0;" />
+              <img src="cid:${OTP_LOGO_CONTENT_ID}" width="56" height="56" alt="RTU Voice" style="display:block;border:0;" />
             </td>
             <td valign="middle">
               <div style="font-family:${serif};font-size:22px;font-weight:700;line-height:1.1;">
