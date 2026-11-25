@@ -151,8 +151,9 @@ export default function LandingPage() {
             </p>
             <p className={styles.resolvedNote}>
               When an administrator assigns a complaint, AI reads its original title and description to return a priority.
-              For complaints shared on the dashboard, AI also writes the title and summary. This text is sent to OpenRouter
-              and Groq/model providers.
+              For complaints shared on the dashboard, AI also writes the title and summary. The app uses OpenRouter when
+              configured and may send the text directly to Groq as a fallback. See the Privacy Notice for provider
+              data-handling details.
             </p>
           </div>
           <ul className={styles.previewPanel} aria-label="Sample public dashboard entries">

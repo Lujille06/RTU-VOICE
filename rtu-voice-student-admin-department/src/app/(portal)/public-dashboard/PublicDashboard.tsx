@@ -79,7 +79,7 @@ export function PublicDashboard({
     try {
       const res = await getPublicComplaints(filtered.length, status, category);
       if (keyRef.current !== started) return; // filter changed meanwhile
-      if (res.total === undefined) {
+      if (!res.success) {
         setError(true);
         return;
       }

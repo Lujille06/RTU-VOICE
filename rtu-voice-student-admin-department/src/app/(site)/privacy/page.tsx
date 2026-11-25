@@ -9,7 +9,7 @@ const AUDIENCES = ["You", "Other logged-in students", "Department staff", "Admin
 const ROWS: { info: string; cells: [Cell, Cell, Cell, Cell] }[] = [
   { info: "Your name, RTU email, and account link", cells: ["yes", "no", "no", "yes"] },
   { info: "Original title, description, and evidence", cells: ["yes", "no", "yes", "yes"] },
-  { info: "AI-written title and summary", cells: ["yes", { text: "Only if you share" }, { text: "[TO CONFIRM]" }, "yes"] },
+  { info: "AI-written title and summary", cells: ["yes", { text: "Only if you share" }, "no", "yes"] },
   { info: "Category, status, and date", cells: ["yes", { text: "Only if you share" }, "yes", "yes"] },
   { info: "AI priority", cells: ["no", "no", "yes", "yes"] },
   { info: "Department update messages", cells: ["yes", "no", "yes", "yes"] },
@@ -55,8 +55,7 @@ export default function PrivacyPage() {
         <LegalSection n={1} title="Who we are">
           <p>
             RTU Voice is a student concern and feedback system and a capstone project of Group 4Voices, BSIT, for Rizal
-            Technological University-Pasig Campus. The university office responsible for privacy questions is{" "}
-            <strong>[TO CONFIRM]</strong>.
+            Technological University-Pasig Campus.
           </p>
         </LegalSection>
 
@@ -142,8 +141,8 @@ export default function PrivacyPage() {
           <p className={s.tableNote}>
             Only logged-in students can view the dashboard. For a complaint shared by its student, it shows the AI-written
             title and summary, category, status, and date—not the student’s name, original text, or priority. The general
-            public cannot view the dashboard. Whether department staff can see the AI-written title and summary is{" "}
-            <strong>[TO CONFIRM]</strong>.
+            public cannot view the dashboard. Staff assigned to a shared complaint can also see its AI-written title and
+            summary.
           </p>
         </LegalSection>
 
@@ -208,8 +207,11 @@ export default function PrivacyPage() {
                 </tr>
                 <tr>
                   <th scope="row" className={s.rowHead}>OTP records</th>
-                  <td>Codes expire after 10 minutes. Expired records are purged on a separate schedule.</td>
-                  <td>The purge interval is <strong>[TO CONFIRM]</strong>.</td>
+                  <td>The code expires after 10 minutes; its database record may remain after it is no longer usable.</td>
+                  <td>
+                    Expired records are deleted by a separate scheduled cleanup, apart from account removal. The exact
+                    cleanup timing has not been specified.
+                  </td>
                 </tr>
               </tbody>
             </table>
@@ -222,8 +224,10 @@ export default function PrivacyPage() {
 
         <LegalSection n={7} title="Security basics">
           <p>
-            Evidence is kept in a private storage bucket and accessed through short-lived links. Other security measures
-            and incident-notification procedures are <strong>[TO CONFIRM]</strong>.
+            Supabase Auth manages sign-in. Protected pages and actions check the account’s active status and role on the
+            server, and regular database access uses Supabase row-level security. OTP codes are stored as keyed hashes,
+            expire after 10 minutes, can be used once, and are limited to three verification attempts. Evidence is stored
+            in a private bucket and accessed through short-lived links.
           </p>
         </LegalSection>
 
@@ -243,12 +247,27 @@ export default function PrivacyPage() {
           <ul>
             <li>Supabase: database, authentication, and storage.</li>
             <li>Vercel: hosting.</li>
-            <li>OpenRouter and Groq/model providers: AI processing of the original complaint title and description.</li>
+            <li>
+              OpenRouter: used when configured; if both services are configured, it is attempted before Groq. OpenRouter
+              says it does not use inputs or outputs to train its own models, but the model providers it routes to have
+              their own data practices, which can vary by provider.
+              See its{" "}
+              <a href="https://openrouter.ai/privacy">privacy policy</a> and{" "}
+              <a href="https://openrouter.ai/docs/guides/privacy/provider-logging">provider logging information</a>.
+            </li>
+            <li>
+              Groq: if OpenRouter attempts fail and a Groq key is configured, the application sends the complaint text
+              directly to Groq as a fallback; Groq is not routed through OpenRouter. Groq says inference data is not
+              retained by default, but it may temporarily retain inputs and outputs for up to 30 days for reliability or
+              abuse monitoring. Groq offers Zero Data Retention; whether that setting is enabled for RTU Voice has not
+              been verified. See{" "}
+              <a href="https://console.groq.com/docs/your-data">Groq’s data handling information</a>.
+            </li>
             <li>Resend: student status and department-update emails, and administrator notifications when a department returns a complaint.</li>
           </ul>
           <p>
-            When AI processing runs, the original title and description are sent to the third-party AI service. Provider
-            retention and handling details are <strong>[TO CONFIRM]</strong>.
+            When AI processing runs, the original title and description are sent to the provider being attempted. Model
+            providers used through OpenRouter may have separate retention and training practices.
           </p>
         </LegalSection>
 
@@ -279,24 +298,22 @@ export default function PrivacyPage() {
           </ul>
           <p>
             A submitted complaint cannot be withdrawn. If you need a complaint reviewed, contact the admin office.
-            Contact details are <strong>[TO CONFIRM]</strong>.
-          </p>
-          <p>
-            Other privacy rights, request procedures, and any legal exceptions need confirmation before publication:{" "}
-            <strong>[TO CONFIRM]</strong>.
+            You can also reach the RTU Voice team at{" "}
+            <a href="mailto:2024-200380@rtu.edu.ph">2024-200380@rtu.edu.ph</a>.
           </p>
         </LegalSection>
 
         <LegalSection n={11} title="Changes to this notice">
           <p>
             We may update this notice. For important changes, we will notify you in the system and update the date at the
-            top of this page. How earlier versions can be reviewed is <strong>[TO CONFIRM]</strong>.
+            top of this page.
           </p>
         </LegalSection>
 
         <LegalSection n={12} title="Contact">
           <p>
-            Privacy contact: <strong>[TO CONFIRM]</strong>. The address previously shown here has not been confirmed.
+            Reach the RTU Voice team and privacy contact at{" "}
+            <a href="mailto:2024-200380@rtu.edu.ph">2024-200380@rtu.edu.ph</a>.
           </p>
         </LegalSection>
       </LegalBody>

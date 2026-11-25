@@ -22,7 +22,7 @@ const ITEMS = [
   },
   {
     q: "What does the AI process?",
-    a: "When an administrator assigns a complaint, an AI service reads its original title and description to return a priority visible to administrators and department staff. Administrators cannot change the priority. For complaints you choose to share, AI also writes a title and summary intended to remove personal details; it is not guaranteed to remove every identifying detail. The text is sent to OpenRouter and Groq/model providers.",
+    a: "When an administrator assigns a complaint, an AI service reads its original title and description to return a priority visible to administrators and department staff. Administrators cannot change the priority. For complaints you choose to share, AI also writes a title and summary intended to remove personal details; it is not guaranteed to remove every identifying detail. The app uses OpenRouter when configured and may send the text directly to Groq as a fallback. See the Privacy Notice for provider data-handling details.",
   },
   {
     q: "How do I track it?",

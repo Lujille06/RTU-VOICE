@@ -155,7 +155,7 @@ export default function AboutPage() {
           Have a concern or feedback about RTU Voice?
         </h2>
         <p className={styles.contactText}>
-          Reach the team at <strong>[TO CONFIRM]</strong>
+          Reach the team at <a href="mailto:2024-200380@rtu.edu.ph">2024-200380@rtu.edu.ph</a>
         </p>
         <Link href="/report" className={styles.contactBtn}>
           Report a concern

@@ -203,7 +203,8 @@ export function ProfileForm() {
                   Your email cannot be changed.
                   {user.role === "student" ? (
                     <>
-                      {" "}If it is incorrect, request a correction from the privacy contact ([TO CONFIRM]). See the{" "}
+                      {" "}If it is incorrect, request a correction from the privacy contact at{" "}
+                      <a href="mailto:2024-200380@rtu.edu.ph">2024-200380@rtu.edu.ph</a>. See the{" "}
                       <Link href="/privacy">Privacy Notice</Link>.
                     </>
                   ) : null}

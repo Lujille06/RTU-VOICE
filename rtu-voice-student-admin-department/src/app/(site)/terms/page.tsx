@@ -153,7 +153,8 @@ export default function TermsPage() {
         <LegalSection n={15} title="Changes">
           <p>
             We may update these terms and will tell you about important changes in the system. The effect of continued use
-            after a change is [TO CONFIRM]. Questions: [TO CONFIRM].
+            after a change is [TO CONFIRM]. Questions:{" "}
+            <a href="mailto:2024-200380@rtu.edu.ph">2024-200380@rtu.edu.ph</a>.
           </p>
         </LegalSection>
       </LegalBody>
