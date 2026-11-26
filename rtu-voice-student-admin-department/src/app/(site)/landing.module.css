@@ -838,9 +838,9 @@
 :global(#how-to-submit ol > li:nth-child(3) > div > span:last-child) {
   display: none;
 }
-:global(#how-to-submit ol > li:nth-child(4) > div > span:last-child) {
-  font-size: 0;
-  white-space: nowrap;
+:global(#main #how-to-submit ol > li:nth-child(4) > div > span:last-child) {
+  font-size: 0 !important;
+  white-space: normal;
 }
 :global(#how-to-submit ol > li:nth-child(4) > div > span:last-child::after) {
   content: "Images, audio, PDF or video · up to 5 MB";
