@@ -18,7 +18,10 @@ const nextConfig: NextConfig = {
     unoptimized: true,
   },
   outputFileTracingIncludes: {
-    "/*": ["./public/images/rtu-voice-logo.png"],
+    "/*": [
+      "./public/images/rtu-voice-logo.png",
+      "./public/fonts/LiberationSerif-Bold.ttf",
+    ],
   },
 };
 
