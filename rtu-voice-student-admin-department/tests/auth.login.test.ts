@@ -20,7 +20,7 @@ vi.mock("@/lib/supabase/server", () => ({
 vi.mock("next/cache", () => ({ revalidatePath: vi.fn() }));
 vi.mock("next/navigation", () => ({ redirect: vi.fn() }));
 
-import { validateAndloginUser } from "@/actions/authActions";
+import { validateAndSendOtp, validateAndloginUser } from "@/actions/authActions";
 
 const form = (fields: Record<string, string>) => {
   const fd = new FormData();
@@ -34,6 +34,25 @@ const signedIn = () =>
 const profile = (data: any) => mocks.maybeSingle.mockResolvedValue({ data });
 
 beforeEach(() => vi.clearAllMocks());
+
+describe("registration privacy notice consent", () => {
+  it("does not begin registration without explicit consent", async () => {
+    const res = await validateAndSendOtp(
+      form({
+        firstName: "Juan",
+        lastName: "Dela Cruz",
+        email: "juan@rtu.edu.ph",
+        password: "Passw0rd",
+        confirmPassword: "Passw0rd",
+      })
+    );
+
+    expect(res).toEqual({
+      success: false,
+      message: "Please agree to the Privacy Notice before registering.",
+    });
+  });
+});
 
 describe("empty fields", () => {
   it("missing email", async () => {

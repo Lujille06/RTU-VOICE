@@ -23,6 +23,10 @@ import { ROLE_BY_ID, destinationFor } from "@/features/auth/guards";
 
 // validate registration input and send an OTP. The CLIENT keeps the pending values.
 export async function validateAndSendOtp(formData: FormData): Promise<RegisterState> {
+    if (formData.get("privacyNoticeAccepted") !== "true") {
+        return { success: false, message: "Please agree to the Privacy Notice before registering." };
+    }
+
     const firstName = str(formData.get("firstName")).trim();
     const lastName = str(formData.get("lastName")).trim();
     const email = str(formData.get("email")).trim().toLowerCase();

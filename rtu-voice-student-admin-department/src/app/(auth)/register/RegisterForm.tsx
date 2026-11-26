@@ -19,6 +19,7 @@ export function RegisterForm() {
   const [errors, setErrors] = useState<Errors>({});
   const [formError, setFormError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  const [privacyNoticeAccepted, setPrivacyNoticeAccepted] = useState(false);
 
   const set = (key: keyof typeof form) => (value: string) => {
     setForm((f) => ({ ...f, [key]: value }));
@@ -36,6 +37,11 @@ export function RegisterForm() {
   const submit = async (e: FormEvent) => {
     e.preventDefault();
     setFormError(null);
+    if (!privacyNoticeAccepted) {
+      setFormError("Please agree to the Privacy Notice before registering.");
+      return;
+    }
+
     const next = validate();
     setErrors(next);
     if (Object.values(next).some(Boolean)) return;
@@ -48,6 +54,7 @@ export function RegisterForm() {
       fd.set("email", form.email);
       fd.set("password", form.password);
       fd.set("confirmPassword", form.confirm);
+      fd.set("privacyNoticeAccepted", "true");
 
       const res = await validateAndSendOtp(fd);
       if (!res.success) {
@@ -107,7 +114,27 @@ export function RegisterForm() {
           value={form.confirm} onChange={(e) => set("confirm")(e.target.value)} error={errors.confirm}
           labelClassName={styles.label} inputClassName={styles.input} />
 
-        <button type="submit" className={styles.submit} disabled={busy} aria-busy={busy}>
+        <div className={styles.privacyConsent}>
+          <input
+            type="checkbox"
+            className="checkbox"
+            id="privacyNoticeAccepted"
+            name="privacyNoticeAccepted"
+            value="true"
+            checked={privacyNoticeAccepted}
+            required
+            onChange={(e) => {
+              setPrivacyNoticeAccepted(e.target.checked);
+              setFormError(null);
+            }}
+          />
+          <span>
+            <label htmlFor="privacyNoticeAccepted">I have read and agree to the </label>
+            <Link href="/privacy">Privacy Notice</Link>.
+          </span>
+        </div>
+
+        <button type="submit" className={styles.submit} disabled={busy || !privacyNoticeAccepted} aria-busy={busy}>
           {busy ? <span className="spinner" aria-hidden="true" /> : null}
           {busy ? "Sending code…" : "Register"}
         </button>
