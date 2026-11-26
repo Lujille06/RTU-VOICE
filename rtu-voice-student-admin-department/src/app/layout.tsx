@@ -4,12 +4,17 @@ import { ToastProvider } from "@/components/Toast";
 import "@/styles/globals.css";
 
 export const metadata: Metadata = {
-  title: {
-    default: "RTU Voice",
-    template: "%s · RTU Voice",
+  metadataBase: new URL("www.rtuvoice.site"), // use your real domain
+  title: { default: "RTU VOICE", template: "%s · RTU VOICE" },
+  description: "Report campus concerns, track their progress, and see them resolved. For RTU–Pasig students.",
+  openGraph: {
+    type: "website",
+    siteName: "RTU VOICE",
+    title: "RTU VOICE: your concern, heard and tracked",
+    description: "Report campus concerns, track their progress, and see them resolved.",
+    url: "/",
+    locale: "en_PH",
   },
-  description:
-    "RTU Voice: an AI-assisted student concern and feedback system for Rizal Technological University - Pasig Campus.",
 };
 
 export const viewport: Viewport = {
