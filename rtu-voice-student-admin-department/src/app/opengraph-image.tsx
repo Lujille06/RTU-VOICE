@@ -1,5 +1,4 @@
 import { readFile } from "node:fs/promises";
-import { join } from "node:path";
 import { ImageResponse } from "next/og";
 
 export const alt = "RTU VOICE: student concern and feedback system for Rizal Technological University–Pasig";
@@ -11,18 +10,18 @@ const GOLD_TEXT = "#b8860b"; // deeper than the gear gold, so "VOICE" stays read
 const GOLD_BRAND = "#d6a323";
 
 // The font is optional: if the file is missing, the image still renders with the default font.
-async function readOptional(path: string) {
+async function readOptional() {
   try {
-    return await readFile(join(process.cwd(), path));
+    return await readFile(new URL("../../public/fonts/LiberationSerif-Bold.ttf", import.meta.url));
   } catch {
     return null;
   }
 }
 
 export default async function OpenGraphImage() {
-  const logoFile = await readFile(join(process.cwd(), "public/images/rtu-voice-logo.png")); // the cropped logo (413 x 371)
+  const logoFile = await readFile(new URL("../../public/images/rtu-voice-logo.png", import.meta.url)); // the cropped logo (413 x 371)
   const logoSrc = `data:image/png;base64,${logoFile.toString("base64")}`;
-  const fontFile = await readOptional("public/fonts/LiberationSerif-Bold.ttf");
+  const fontFile = await readOptional();
 
   return new ImageResponse(
     (
