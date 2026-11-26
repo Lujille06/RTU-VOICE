@@ -7,11 +7,6 @@ const PASSWORD = process.env.TEST_PASSWORD;
 const DEPT_A = 3, DEPT_B = 2;
 
 const SEED = [
-  { email: "t.student@rtu.edu.ph",  first: "Stu",   last: "One",   role_id: 1 },
-  { email: "t.student2@rtu.edu.ph", first: "Stu",   last: "Two",   role_id: 1 },
-  { email: "t.admin@rtu.edu.ph",    first: "Ad",    last: "Min",   role_id: 2 },
-  { email: "t.deptA@rtu.edu.ph",    first: "Dept",  last: "A",     role_id: 3, department_id: DEPT_A },
-  { email: "t.deptB@rtu.edu.ph",    first: "Dept",  last: "B",     role_id: 3, department_id: DEPT_B },
   { email: "t.super@rtu.edu.ph",    first: "Super", last: "Admin", role_id: 4 },
 ];
 

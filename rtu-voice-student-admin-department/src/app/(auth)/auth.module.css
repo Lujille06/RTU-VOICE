@@ -93,6 +93,24 @@
   font-size: 12px;
   line-height: 1.35;
 }
+.privacyConsent {
+  display: flex;
+  align-items: flex-start;
+  gap: 9px;
+  color: #1f1f1f;
+  font-family: var(--font-inter);
+  font-size: 13px;
+  line-height: 1.4;
+  cursor: pointer;
+}
+.privacyConsent :global(.checkbox) {
+  min-height: 18px;
+}
+.privacyConsent a {
+  color: var(--navy);
+  font-weight: 600;
+  text-decoration: underline;
+}
 .cardLogo {
   display: block;
   width: 96px;
