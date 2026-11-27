@@ -4,7 +4,7 @@ import { ToastProvider } from "@/components/Toast";
 import "@/styles/globals.css";
 
 export const metadata: Metadata = {
-  metadataBase: new URL("https://www.rtuvoice.site"),
+  metadataBase: new URL("https://rtuvoice.site"),
   title: { default: "RTU VOICE", template: "%s · RTU VOICE" },
   description: "Report campus concerns, track their progress, and see them resolved. For RTU–Pasig students.",
   openGraph: {
